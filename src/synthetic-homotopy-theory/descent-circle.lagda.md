@@ -66,6 +66,11 @@ module _
 
   aut-descent-data-circle : Aut type-descent-data-circle
   aut-descent-data-circle = pr2 P
+
+  map-aut-descent-data-circle :
+    type-descent-data-circle → type-descent-data-circle
+  map-aut-descent-data-circle =
+    map-equiv aut-descent-data-circle
 ```
 
 ### Dependent descent data for the circle
@@ -84,7 +89,7 @@ dependent-descent-data-circle :
   ( l2 : Level) → UU (l1 ⊔ lsuc l2)
 dependent-descent-data-circle P l2 =
   Σ ( type-descent-data-circle P → UU l2)
-    ( λ R → equiv-fam R (R ∘ (map-equiv (aut-descent-data-circle P))))
+    ( λ R → equiv-fam R (R ∘ (map-aut-descent-data-circle P)))
 
 module _
   { l1 l2 : Level} (P : descent-data-circle l1)
@@ -98,21 +103,16 @@ module _
     equiv-fam
       type-dependent-descent-data-circle
       ( type-dependent-descent-data-circle ∘
-        ( map-equiv (aut-descent-data-circle P)))
+        ( map-aut-descent-data-circle P))
   equiv-dependent-descent-data-circle = pr2 Q
-```
 
-### Fixpoints of descent data
-
-A fixpoint of `(X, e)` is a fixpoint of `e`.
-
-```agda
-fixpoint-descent-data-circle :
-  { l1 : Level}
-  ( P : descent-data-circle l1) → UU l1
-fixpoint-descent-data-circle P =
-  Σ ( type-descent-data-circle P)
-    ( λ x → (map-equiv (aut-descent-data-circle P) x) ＝ x)
+  map-equiv-dependent-descent-data-circle :
+    (x : type-descent-data-circle P) →
+    type-dependent-descent-data-circle x →
+    type-dependent-descent-data-circle
+      ( map-aut-descent-data-circle P x)
+  map-equiv-dependent-descent-data-circle x =
+    map-equiv (equiv-dependent-descent-data-circle x)
 ```
 
 ### Homomorphisms between descent data for the circle
@@ -126,12 +126,12 @@ hom-descent-data-circle :
   ( P : descent-data-circle l1) (Q : descent-data-circle l2) →
   UU (l1 ⊔ l2)
 hom-descent-data-circle P Q =
-  Σ ( (type-descent-data-circle P) → (type-descent-data-circle Q))
+  Σ ( type-descent-data-circle P → type-descent-data-circle Q)
     ( λ h →
       coherence-square-maps
         ( h)
-        ( map-equiv (aut-descent-data-circle P))
-        ( map-equiv (aut-descent-data-circle Q))
+        ( map-aut-descent-data-circle P)
+        ( map-aut-descent-data-circle Q)
         ( h))
 ```
 
@@ -162,8 +162,8 @@ Eq-descent-data-circle P Q =
     ( λ h →
       coherence-square-maps
         ( map-equiv h)
-        ( map-equiv (aut-descent-data-circle P))
-        ( map-equiv (aut-descent-data-circle Q))
+        ( map-aut-descent-data-circle P)
+        ( map-aut-descent-data-circle Q)
         ( map-equiv h))
 
 module _
@@ -175,13 +175,13 @@ module _
     type-descent-data-circle P ≃ type-descent-data-circle Q
   equiv-Eq-descent-data-circle = pr1 αH
 
-  coherence-Eq-descent-data-circle :
+  coherence-square-Eq-descent-data-circle :
     coherence-square-maps
       ( map-equiv equiv-Eq-descent-data-circle)
-      ( map-equiv (aut-descent-data-circle P))
-      ( map-equiv (aut-descent-data-circle Q))
+      ( map-aut-descent-data-circle P)
+      ( map-aut-descent-data-circle Q)
       ( map-equiv equiv-Eq-descent-data-circle)
-  coherence-Eq-descent-data-circle = pr2 αH
+  coherence-square-Eq-descent-data-circle = pr2 αH
 ```
 
 ### A family over the circle equipped with corresponding descent data
@@ -232,27 +232,68 @@ module _
 
 module _
   { l1 l2 : Level} {S : UU l1} (l : free-loop S)
-  ( APαH : family-with-descent-data-circle l l2)
+  ( A : family-with-descent-data-circle l l2)
   where
 
   family-family-with-descent-data-circle : S → UU l2
-  family-family-with-descent-data-circle = pr1 APαH
+  family-family-with-descent-data-circle = pr1 A
+
+  descent-data-family-with-descent-data-circle : descent-data-circle l2
+  descent-data-family-with-descent-data-circle =
+    pr1 (pr2 A)
+
+  type-family-with-descent-data-circle : UU l2
+  type-family-with-descent-data-circle =
+    type-descent-data-circle descent-data-family-with-descent-data-circle
+
+  aut-family-with-descent-data-circle :
+    Aut type-family-with-descent-data-circle
+  aut-family-with-descent-data-circle =
+    aut-descent-data-circle descent-data-family-with-descent-data-circle
+
+  map-aut-family-with-descent-data-circle :
+    type-family-with-descent-data-circle → type-family-with-descent-data-circle
+  map-aut-family-with-descent-data-circle =
+    map-aut-descent-data-circle descent-data-family-with-descent-data-circle
+
+  eq-family-with-descent-data-circle :
+    Eq-descent-data-circle
+      ( descent-data-family-with-descent-data-circle)
+      ( ev-descent-data-circle l family-family-with-descent-data-circle)
+  eq-family-with-descent-data-circle =
+    pr2 (pr2 A)
+
+  equiv-family-with-descent-data-circle :
+    type-family-with-descent-data-circle ≃
+    family-family-with-descent-data-circle (base-free-loop l)
+  equiv-family-with-descent-data-circle =
+    equiv-Eq-descent-data-circle
+      ( descent-data-family-with-descent-data-circle)
+      ( ev-descent-data-circle l family-family-with-descent-data-circle)
+      ( eq-family-with-descent-data-circle)
+
+  map-equiv-family-with-descent-data-circle :
+    type-family-with-descent-data-circle →
+    family-family-with-descent-data-circle (base-free-loop l)
+  map-equiv-family-with-descent-data-circle =
+    map-equiv equiv-family-with-descent-data-circle
+
+  coherence-square-family-with-descent-data-circle :
+    coherence-square-maps
+      ( map-equiv-family-with-descent-data-circle)
+      ( map-aut-family-with-descent-data-circle)
+      ( tr family-family-with-descent-data-circle (loop-free-loop l))
+      ( map-equiv-family-with-descent-data-circle)
+  coherence-square-family-with-descent-data-circle =
+    coherence-square-Eq-descent-data-circle
+      ( descent-data-family-with-descent-data-circle)
+      ( ev-descent-data-circle l family-family-with-descent-data-circle)
+      ( eq-family-with-descent-data-circle)
 
   descent-data-for-family-with-descent-data-circle :
     descent-data-circle-for-family l
       family-family-with-descent-data-circle
-  descent-data-for-family-with-descent-data-circle = pr2 APαH
-
-  descent-data-family-with-descent-data-circle : descent-data-circle l2
-  descent-data-family-with-descent-data-circle =
-    pr1 descent-data-for-family-with-descent-data-circle
-
-  eq-family-with-descent-data-circle :
-    Eq-descent-data-circle
-      descent-data-family-with-descent-data-circle
-      ( ev-descent-data-circle l family-family-with-descent-data-circle)
-  eq-family-with-descent-data-circle =
-    pr2 descent-data-for-family-with-descent-data-circle
+  descent-data-for-family-with-descent-data-circle = pr2 A
 
   family-for-family-with-descent-data-circle :
     family-for-descent-data-circle l
@@ -286,7 +327,7 @@ is-contr-total-Eq-descent-data-circle P =
     ( λ Y f h →
       coherence-square-maps
         ( map-equiv h)
-        ( map-equiv (aut-descent-data-circle P))
+        ( map-aut-descent-data-circle P)
         ( map-equiv f)
         ( map-equiv h))
     ( is-contr-total-equiv (type-descent-data-circle P))
@@ -326,9 +367,9 @@ module _
         ( x : type-descent-data-circle P) →
         coherence-square-maps
           ( map-equiv (H x))
-          ( map-equiv (equiv-dependent-descent-data-circle P Q x))
-          ( map-equiv (equiv-dependent-descent-data-circle P T x))
-          ( map-equiv (H (map-equiv (aut-descent-data-circle P) x))))
+          ( map-equiv-dependent-descent-data-circle P Q x)
+          ( map-equiv-dependent-descent-data-circle P T x)
+          ( map-equiv (H (map-aut-descent-data-circle P x))))
 
   refl-Eq-dependent-descent-data-circle :
     ( Q : dependent-descent-data-circle P l2) →
@@ -354,15 +395,15 @@ module _
         ( x : type-descent-data-circle P) →
         coherence-square-maps
           ( map-equiv (H x))
-          ( map-equiv (equiv-dependent-descent-data-circle P Q x))
+          ( map-equiv-dependent-descent-data-circle P Q x)
           ( map-equiv (K x))
-          ( map-equiv (H (map-equiv (aut-descent-data-circle P) x))))
+          ( map-equiv (H (map-aut-descent-data-circle P x))))
       ( is-contr-total-equiv-fam (type-dependent-descent-data-circle P Q))
       ( type-dependent-descent-data-circle P Q ,
         id-equiv-fam (type-dependent-descent-data-circle P Q))
       ( is-contr-total-Eq-Π
         ( λ x K →
-          ( map-equiv (equiv-dependent-descent-data-circle P Q x)) ~
+          ( map-equiv-dependent-descent-data-circle P Q x) ~
           ( map-equiv K))
         ( λ x →
           is-contr-total-htpy-equiv
@@ -496,7 +537,7 @@ module _
           ( map-equiv e)
           ( tr A (loop-free-loop l))
           ( map-equiv α)
-    H = coherence-Eq-descent-data-circle P (ev-descent-data-circle l A) αH
+    H = coherence-square-Eq-descent-data-circle P (ev-descent-data-circle l A) αH
 
   comparison-dependent-descent-data-circle :
     free-dependent-loop l (λ t → (A t → UU l3)) ≃
@@ -675,10 +716,10 @@ module _
 
   map-compute-path-over-loop-circle :
     ( x y : type-descent-data-circle P) →
-    ( map-equiv (aut-descent-data-circle P) x ＝ y) →
+    ( map-aut-descent-data-circle P x ＝ y) →
     ( path-over A (loop-free-loop l) (map-equiv α x) (map-equiv α y))
   map-compute-path-over-loop-circle x y q =
-    inv (coherence-Eq-descent-data-circle P (ev-descent-data-circle l A) αH x) ∙
+    inv (coherence-square-Eq-descent-data-circle P (ev-descent-data-circle l A) αH x) ∙
     ( ap (map-equiv α) q)
 
   is-equiv-map-compute-path-over-loop-circle :
@@ -697,7 +738,7 @@ module _
 
   compute-path-over-loop-circle :
     ( x y : type-descent-data-circle P) →
-    ( map-equiv (aut-descent-data-circle P) x ＝ y) ≃
+    ( map-aut-descent-data-circle P x ＝ y) ≃
     ( path-over A (loop-free-loop l) (map-equiv α x) (map-equiv α y))
   pr1 (compute-path-over-loop-circle x y) =
     map-compute-path-over-loop-circle x y
