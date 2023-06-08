@@ -475,6 +475,71 @@ module _
 ### Uniqueness of dependent descent data characterizing a type family over a family over the circle
 
 ```agda
+[iv] :
+  {k1 k2 k3 : Level} (I : UU k1) (A : I → UU k2) (B : (i : I) → A i → UU k3)
+  (i : I) {a b : A i} (p : a ＝ b) → ap (ind-Σ B) (eq-pair-Σ refl p) ＝ ap (B i) p
+[iv] I A B i refl = refl
+
+[v] :
+  {k1 k2 : Level} {A : UU k1} {B : UU k2} (f : A → B) {x y : A} (p : x ＝ y) →
+  (ap f (inv p) ∙ ap f p) ＝ refl
+[v] f refl = refl
+
+[v]b :
+  {k1 k2 : Level} {A : UU k1} {B : UU k2} (f : A → B) {x y : A} (p : x ＝ y) →
+  (ap f p ∙ ap f (inv p)) ＝ refl
+[v]b f refl = refl
+
+[v]c :
+  {k1 k2 : Level} {A : UU k1} {B : UU k2}
+  (f : A → B) {x y : A} (p : x ＝ y) {z : B} (r : f x ＝ z) →
+  (ap f p ∙ (ap f (inv p) ∙ r)) ＝ r
+[v]c f refl r = refl
+
+[iii] :
+  {k1 k2 k3 : Level} (I : UU k1) {i0 i1 : I} (p : i0 ＝ i1)
+  (A : I → UU k2) (X : UU k2) (e : Aut X) (α : X ≃ A i0) (α' : X ≃ A i1)
+  (H : coherence-square-maps (map-equiv α) (map-equiv e) (tr A p) (map-equiv α'))
+  (B : (i : I) → A i → UU k3) (R : X → UU k3) (K : (x : X) → R x ≃ R (map-equiv e x))
+  (β : (x : X) → R x ≃ B i0 (map-equiv α x))
+  (β' : (x : X) → R x ≃ B i1 (map-equiv α' x))
+  (L : (x : X) → coherence-square-maps (map-equiv (β x)) (map-equiv (K x)) (tr (ind-Σ B) (eq-pair-Σ p (inv (H x)))) (map-equiv (β' (map-equiv e x))))
+  (x : A i0) →
+  (inv (tr-const p (B i0 x)) ∙ inv (preserves-tr B p x)) ＝
+  ( (ap (B i0) (inv (issec-map-inv-equiv α x))) ∙
+    (ap (ind-Σ B) (eq-pair-Σ p (inv (H (map-inv-equiv α x)))) ∙
+    (ap (B i1) (H (map-inv-equiv α x)) ∙
+    (ap (B i1) (ap (tr A p) (issec-map-inv-equiv α x))))))
+[iii] I {i0} refl A X e α α' H B R K β β' L x =
+  inv
+    ( ap
+      ( λ p →
+        ap (B i0) (inv (issec-map-inv-equiv α x)) ∙
+        ( ap (ind-Σ B) (eq-pair-Σ refl (inv (H (map-inv-equiv α x)))) ∙
+        ( ap (B i0) (H (map-inv-equiv α x)) ∙
+        ( ap (B i0) p))))
+      ( ap-id (issec-map-inv-equiv α x)) ∙
+      ( ap
+        ( λ p →
+          ap (B i0) (inv (issec-map-inv-equiv α x)) ∙
+          ( p ∙
+            ( ap (B i0) (H (map-inv-equiv α x)) ∙
+              ap (B i0) (issec-map-inv-equiv α x))))
+        ( [iv] I A B i0 (inv (H (map-inv-equiv α x)))) ∙
+        ( inv
+          ( ap
+            ( λ p → ap (B i0) (inv (issec-map-inv-equiv α x)) ∙ p)
+            ( assoc
+              ( ap (B i0) (inv (H (map-inv-equiv α x))))
+              ( ap (B i0) (H (map-inv-equiv α x)))
+              ( ap (B i0) (issec-map-inv-equiv α x)))) ∙
+          ( ap
+            ( λ p →
+              ap (B i0) (inv (issec-map-inv-equiv α x)) ∙
+              ( p ∙ (ap (B i0) (issec-map-inv-equiv α x))))
+            ( [v] (B i0) (H (map-inv-equiv α x))) ∙
+            ( [v] (B i0) (issec-map-inv-equiv α x))))))
+
 module _
   { l1 l2 l3 : Level} {S : UU l1} (l : free-loop S)
   ( APαH : family-with-descent-data-circle l l2)
@@ -497,6 +562,13 @@ module _
           ( tr A (loop-free-loop l))
           ( map-equiv α)
     H = coherence-Eq-descent-data-circle P (ev-descent-data-circle l A) αH
+
+  ev-dependent-descent-data-circle :
+    ((x : S) → (A x) → UU l3) → dependent-descent-data-circle P l3
+  pr1 (ev-dependent-descent-data-circle A) =
+    A (base-free-loop l) ∘ map-equiv α
+  pr2 (ev-dependent-descent-data-circle A) x =
+    equiv-tr (ind-Σ A) (eq-pair-Σ (loop-free-loop l) (inv (H x)))
 
   comparison-dependent-descent-data-circle :
     free-dependent-loop l (λ t → (A t → UU l3)) ≃
@@ -527,22 +599,24 @@ module _
               ( R ∘ map-equiv α)
               ( R ∘ (map-equiv α ∘ (map-equiv e)))
             by
-              inv-equiv
-                ( equiv-Π
-                  ( eq-value R (R ∘ tr A (loop-free-loop l)))
-                  ( α)
-                  ( λ a' →
-                    ( equiv-concat'
-                      ( R (map-equiv α a'))
-                      ( ap R (H a'))) ∘e
-                    ( inv-equiv equiv-univalence))))
-
-  ev-dependent-descent-data-circle :
-    ((x : S) → (A x) → UU l3) → dependent-descent-data-circle P l3
-  pr1 (ev-dependent-descent-data-circle A) =
-    A (base-free-loop l) ∘ map-equiv α
-  pr2 (ev-dependent-descent-data-circle A) x =
-    equiv-tr (ind-Σ A) (eq-pair-Σ (loop-free-loop l) (inv (H x)))
+              equiv-Π
+                ( λ z →
+                  ( R ∘ map-equiv α) z ≃
+                  ( R ∘ (map-equiv α ∘ map-equiv e)) z)
+                ( inv-equiv α)
+                ( λ x →
+                  equiv-univalence ∘e
+                  ( ( equiv-concat'
+                      ( R (map-equiv α (map-inv-equiv α x)))
+                      ( ap
+                        ( R)
+                        ( ap
+                          ( tr A (loop-free-loop l))
+                          ( inv (issec-map-inv-equiv α x)) ∙
+                          inv (H (map-inv-equiv α x))))) ∘e
+                    equiv-concat
+                      ( ap R (issec-map-inv-equiv α x))
+                      ( R (tr A (loop-free-loop l) x)))))
 
   triangle-comparison-dependent-descent-data-circle :
     coherence-triangle-maps
@@ -555,8 +629,267 @@ module _
       ( map-equiv comparison-dependent-descent-data-circle
         ( ev-free-loop-Π l (λ t → A t → UU l3) B))
       ( id-equiv-fam _ ,
-        {! !})
+        let
+          [i] :
+            ( Q : (t : S) → A t → UU l3) →
+              ( map-inv-equiv
+                ( compute-path-over-function-type
+                  A
+                  (λ _ → UU l3)
+                  (loop-free-loop l)
+                  (Q (base-free-loop l))
+                  (Q (base-free-loop l))))
+                (apd Q (loop-free-loop l)) ＝
+                inv-htpy (preserves-tr Q (loop-free-loop l))
+          [i] Q = eq-htpy (preserves-tr-apd-function Q (loop-free-loop l))
+          [ii] :
+            (Q : (t : S) → A t → UU l3) (x : A (base-free-loop l)) →
+               ( inv (tr-const (loop-free-loop l) (Q (base-free-loop l) x)) ∙
+                (inv (preserves-tr Q (loop-free-loop l) x))) ＝
+                ( (ap (Q (base-free-loop l)) (inv (issec-map-inv-equiv α x))) ∙
+                  (ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                  (ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                  (ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))
+          [ii] Q =
+            let ddd = ev-dependent-descent-data-circle Q in
+            [iii] S (loop-free-loop l) A (type-descent-data-circle P) e α α
+            H Q (pr1 ddd) (pr2 ddd) (λ x → id-equiv) (λ x → id-equiv)
+            (λ x → refl-htpy)
+          [ii]' :
+              concat-htpy
+                ( (inv-htpy (tr-const (loop-free-loop l))) ·r (B (base-free-loop l)))
+                ( (B (base-free-loop l) ∘ (tr A (loop-free-loop l))))
+              (inv-htpy (preserves-tr B (loop-free-loop l))) ＝
+              ( λ x →
+                (ap (B (base-free-loop l)) (inv (issec-map-inv-equiv α x))) ∙
+                (ap (ind-Σ B) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                (ap (B (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                (ap (B (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))
+          [ii]' = eq-htpy ([ii] B)
+          [iii] :
+            (Q : (t : S) → A t → UU l3) (x : A (base-free-loop l)) →
+            map-equiv-Π
+              ( λ z →
+                ( (Q (base-free-loop l)) ∘ map-equiv α) z ≃
+                ( (Q (base-free-loop l)) ∘ (map-equiv α ∘ map-equiv e)) z)
+              ( inv-equiv α)
+              ( λ x →
+                equiv-univalence ∘e
+                ( ( equiv-concat'
+                    ( (Q (base-free-loop l)) (map-equiv α (map-inv-equiv α x)))
+                    ( ap
+                      ( (Q (base-free-loop l)))
+                        ( ap
+                          ( tr A (loop-free-loop l))
+                          ( inv (issec-map-inv-equiv α x)) ∙
+                            inv (H (map-inv-equiv α x))))) ∘e
+                  equiv-concat
+                    ( ap (Q (base-free-loop l)) (issec-map-inv-equiv α x))
+                    ( (Q (base-free-loop l)) (tr A (loop-free-loop l) x))))
+              ( λ x →
+                ( (ap (Q (base-free-loop l)) (inv (issec-map-inv-equiv α x))) ∙
+                  (ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                  (ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                  (ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)))))))
+              ( map-equiv (inv-equiv α) x) ＝
+              equiv-eq
+              ( ( (ap (Q (base-free-loop l)) (issec-map-inv-equiv α x)) ∙
+                  (ap (Q (base-free-loop l)) (inv (issec-map-inv-equiv α x)) ∙
+                  (ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                  (ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                  (ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))) ∙
+                (ap
+                  ( Q (base-free-loop l))
+                  ( ap
+                    ( tr A (loop-free-loop l))
+                    ( inv (issec-map-inv-equiv α x)) ∙
+                      inv (H (map-inv-equiv α x)))))
+          [iii] Q =
+            compute-map-equiv-Π
+                ( λ z →
+                  ( (Q (base-free-loop l)) ∘ map-equiv α) z ≃
+                  ( (Q (base-free-loop l)) ∘ (map-equiv α ∘ map-equiv e)) z)
+                ( inv-equiv α)
+                ( λ x →
+                  equiv-univalence ∘e
+                  ( ( equiv-concat'
+                      ( (Q (base-free-loop l)) (map-equiv α (map-inv-equiv α x)))
+                      ( ap
+                        ( (Q (base-free-loop l)))
+                        ( ap
+                          ( tr A (loop-free-loop l))
+                          ( inv (issec-map-inv-equiv α x)) ∙
+                            inv (H (map-inv-equiv α x))))) ∘e
+                    equiv-concat
+                      ( ap (Q (base-free-loop l)) (issec-map-inv-equiv α x))
+                      ( (Q (base-free-loop l)) (tr A (loop-free-loop l) x))))
+                (λ x → ap (Q (base-free-loop l))
+                  (inv (issec-map-inv-equiv α x))
+                  ∙
+                  (ap (ind-Σ Q)
+                   (eq-pair-Σ (loop-free-loop l)
+                    (inv
+                     (H (map-inv-equiv α x))))
+                   ∙
+                   (ap (Q (base-free-loop l))
+                    (H (map-inv-equiv α x))
+                    ∙
+                    ap (Q (base-free-loop l))
+                    (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)))))
+          [iii]' :
+            map-equiv-Π
+              ( λ z →
+                ( (B (base-free-loop l)) ∘ map-equiv α) z ≃
+                ( (B (base-free-loop l)) ∘ (map-equiv α ∘ map-equiv e)) z)
+              ( inv-equiv α)
+              ( λ x →
+                equiv-univalence ∘e
+                ( ( equiv-concat'
+                    ( (B (base-free-loop l)) (map-equiv α (map-inv-equiv α x)))
+                    ( ap
+                      ( (B (base-free-loop l)))
+                        ( ap
+                          ( tr A (loop-free-loop l))
+                          ( inv (issec-map-inv-equiv α x)) ∙
+                            inv (H (map-inv-equiv α x))))) ∘e
+                  equiv-concat
+                    ( ap (B (base-free-loop l)) (issec-map-inv-equiv α x))
+                    ( (B (base-free-loop l)) (tr A (loop-free-loop l) x))))
+              ( λ x →
+                ( (ap (B (base-free-loop l)) (inv (issec-map-inv-equiv α x))) ∙
+                  (ap (ind-Σ B) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                  (ap (B (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                  (ap (B (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))) ＝
+            ( λ x →
+            -- I'm temporarily lost here
+            {!equiv-eq
+              ( ( (ap (B (base-free-loop l)) (issec-map-inv-equiv α x)) ∙
+                  (ap (B (base-free-loop l)) (inv (issec-map-inv-equiv α x)) ∙
+                  (ap (ind-Σ B) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                  (ap (B (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                  (ap (B (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))) ∙
+                (ap
+                  ( B (base-free-loop l))
+                  ( ap
+                    ( tr A (loop-free-loop l))
+                    ( inv (issec-map-inv-equiv α x)) ∙
+                      inv (H (map-inv-equiv α x)))))!})
+          [iii]' = {!!}
+          [v]'' :
+            ( Q : (t : S) → A t → UU l3) (x : A (base-free-loop l)) →
+            ( ( (ap (Q (base-free-loop l)) (issec-map-inv-equiv α x)) ∙
+                (ap (Q (base-free-loop l)) (inv (issec-map-inv-equiv α x)) ∙
+                (ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                (ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                (ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))) ∙
+              (ap
+                ( Q (base-free-loop l))
+                ( ap
+                    ( tr A (loop-free-loop l))
+                    ( inv (issec-map-inv-equiv α x)) ∙
+                  inv (H (map-inv-equiv α x))))) ＝
+            ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x))))
+          [v]'' Q x =
+            ap
+              ( λ p →
+                p ∙
+                (ap
+                  ( Q (base-free-loop l))
+                  ( ap
+                      ( tr A (loop-free-loop l))
+                      ( inv (issec-map-inv-equiv α x)) ∙
+                    inv (H (map-inv-equiv α x)))))
+            ( [v]c
+              ( Q (base-free-loop l))
+              ( issec-map-inv-equiv α x)
+              ( ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                ( ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                ( ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)))))) ∙
+            ( assoc
+              ( ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))))
+              ( ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                ( ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))
+              ( ap
+                ( Q (base-free-loop l))
+                ( ap
+                    ( tr A (loop-free-loop l))
+                    ( inv (issec-map-inv-equiv α x)) ∙
+                  inv (H (map-inv-equiv α x)))) ∙
+            ( ap
+              ( λ p →
+                ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                p)
+              ( assoc
+                ( ap (Q (base-free-loop l)) (H (map-inv-equiv α x)))
+                ( ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)))
+                ( ap
+                  ( Q (base-free-loop l))
+                  ( ap
+                      ( tr A (loop-free-loop l))
+                      ( inv (issec-map-inv-equiv α x)) ∙
+                    inv (H (map-inv-equiv α x))))) ∙
+            ( ap
+              ( λ p →
+                ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                ( ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                ( ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)) ∙
+                p)))
+              ( ap-concat
+                ( Q (base-free-loop l))
+                ( ap (tr A (loop-free-loop l)) (inv (issec-map-inv-equiv α x)))
+                ( inv (H (map-inv-equiv α x)))) ∙
+            ( ap
+              ( λ p →
+                ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                ( ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                ( ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)) ∙
+                ( ap (Q (base-free-loop l)) p ∙
+                ( ap (Q (base-free-loop l)) (inv (H (map-inv-equiv α x))))))))
+              ( ap-inv (tr A (loop-free-loop l)) (issec-map-inv-equiv α x)) ∙
+            (ap
+              ( λ p →
+                ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                ( ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                ( p)))
+              ( [v]c
+                ( Q (base-free-loop l))
+                ( ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))
+                ( ap (Q (base-free-loop l)) (inv (H (map-inv-equiv α x))))) ∙
+            (ap
+              ( λ p →
+                (ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x))))) ∙
+                p)
+              ([v]b
+                ( Q (base-free-loop l))
+                ( (H (map-inv-equiv α x)))) ∙
+            right-unit))))))
+          [vi]' :
+            ( Q : (t : S) → A t → UU l3) (x : A (base-free-loop l)) →
+            ( map-equiv
+              ( equiv-eq
+                ( ( (ap (Q (base-free-loop l)) (issec-map-inv-equiv α x)) ∙
+                    (ap (Q (base-free-loop l)) (inv (issec-map-inv-equiv α x)) ∙
+                    (ap (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))) ∙
+                    (ap (Q (base-free-loop l)) (H (map-inv-equiv α x)) ∙
+                    (ap (Q (base-free-loop l)) (ap (tr A (loop-free-loop l)) (issec-map-inv-equiv α x))))))) ∙
+                  (ap
+                    ( Q (base-free-loop l))
+                    ( ap
+                      ( tr A (loop-free-loop l))
+                      ( inv (issec-map-inv-equiv α x)) ∙
+                        inv (H (map-inv-equiv α x))))))) ~
+            (tr (ind-Σ Q) (eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))))
+          [vi]' Q x =
+            htpy-eq
+              ( ap (λ p → map-equiv (equiv-eq p)) ([v]'' Q x) ∙
+                compute-equiv-eq-ap
+                  ( eq-pair-Σ (loop-free-loop l) (inv (H (map-inv-equiv α x)))))
 
+    in
+    λ x b →
+      inv {![i] B!})
+
+  -- THIS IS THE ULTIMATE GOAL, I DON'T CARE HOW I REACH IT
   is-equiv-ev-dependent-descent-data-circle-dependent-universal-property-circle :
     dependent-universal-property-circle (l2 ⊔ lsuc l3) l →
     is-equiv ev-dependent-descent-data-circle
