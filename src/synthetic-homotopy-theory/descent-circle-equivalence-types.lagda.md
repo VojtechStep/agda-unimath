@@ -7,10 +7,15 @@ module synthetic-homotopy-theory.descent-circle-equivalence-types where
 <details><summary>Imports</summary>
 
 ```agda
+open import foundation.commuting-squares-of-maps
 open import foundation.contractible-types
 open import foundation.dependent-pair-types
 open import foundation.equivalences
+open import foundation.equality-dependent-pair-types
+open import foundation.identity-types
 open import foundation.functoriality-dependent-pair-types
+open import foundation.transport
+open import foundation.univalence
 open import foundation.universe-levels
 
 open import synthetic-homotopy-theory.descent-circle
@@ -122,4 +127,57 @@ module _
           ( equiv-Eq-descent-data-circle-hom-is-equiv
             ( descent-data-family-with-descent-data-circle A)
             ( descent-data-family-with-descent-data-circle B))
+```
+
+```agda
+module _
+  { l1 l2 : Level} {S : UU l1} (l : free-loop S)
+  ( A : family-with-descent-data-circle l l2)
+  ( B : family-with-descent-data-circle l l2)
+  where
+
+  _ :
+    ( {k : Level} → dependent-universal-property-circle k l) →
+    ( Eq-descent-data-circle
+      ( descent-data-family-with-descent-data-circle A)
+      ( descent-data-family-with-descent-data-circle B)) →
+    ( (t : S) →
+      ( family-family-with-descent-data-circle A t) ≃
+      ( family-family-with-descent-data-circle B t))
+  _ =
+    λ dup-circle e →
+    let
+      [i] : family-for-descent-data-circle l (descent-data-family-with-descent-data-circle A)
+      [i] =
+        family-family-with-descent-data-circle B ,
+        ( equiv-family-with-descent-data-circle B ∘e pr1 e) ,
+        pasting-horizontal-coherence-square-maps
+          ( map-equiv (pr1 e))
+          ( map-equiv-family-with-descent-data-circle B)
+          ( map-aut-family-with-descent-data-circle A)
+          ( map-aut-family-with-descent-data-circle B)
+          ( tr (family-family-with-descent-data-circle B) (loop-free-loop l))
+          ( map-equiv (pr1 e))
+          ( map-equiv-family-with-descent-data-circle B)
+          ( coherence-square-Eq-descent-data-circle
+            ( descent-data-family-with-descent-data-circle A)
+            ( descent-data-family-with-descent-data-circle B)
+            ( e))
+          ( coherence-square-family-with-descent-data-circle B)
+      [ii] : family-for-family-with-descent-data-circle A ＝ [i]
+      [ii] =
+        eq-is-contr
+          ( unique-family-property-universal-property-circle l
+            ( universal-property-dependent-universal-property-circle l
+              ( dup-circle))
+            ( descent-data-family-with-descent-data-circle A))
+      [iii] :
+        family-family-with-descent-data-circle A ＝
+        family-family-with-descent-data-circle B
+      [iii] = pr1 (map-equiv (equiv-pair-eq-Σ _ _) [ii])
+    in
+      equiv-eq-fam
+        ( family-family-with-descent-data-circle A)
+        ( family-family-with-descent-data-circle B)
+        ( [iii])
 ```
