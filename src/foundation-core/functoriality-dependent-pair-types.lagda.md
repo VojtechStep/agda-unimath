@@ -85,6 +85,21 @@ module _
 
 ## Properties
 
+### Composition of `map-Σ`
+
+```agda
+module _
+  { l1 l2 l3 l4 l5 l6 : Level}
+  { A : UU l1} {B : UU l2} {C : UU l3}
+  { A' : A → UU l4} {B' : B → UU l5} (C' : C → UU l6)
+  ( f : A → B) (g : (a : A) → A' a → B' (f a))
+  ( k : B → C) (l : (b : B) → B' b → C' (k b))
+  where
+
+  map-Σ-comp : Σ A A' → Σ C C'
+  map-Σ-comp = map-Σ C' (k ∘ f) (λ a → l (f a) ∘ g a)
+```
+
 ### The map `map-Σ` preserves homotopies
 
 ```agda

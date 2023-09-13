@@ -10,13 +10,17 @@ open import foundation-core.function-types public
 
 ```agda
 open import foundation.action-on-identifications-dependent-functions
+open import foundation.action-on-identifications-functions
+open import foundation.constant-type-families
+open import foundation.dependent-pair-types
+open import foundation.equality-dependent-pair-types
 open import foundation.function-extensionality
+open import foundation.transport-along-identifications
 open import foundation.universe-levels
 
 open import foundation-core.equivalences
 open import foundation-core.homotopies
 open import foundation-core.identity-types
-open import foundation-core.transport-along-identifications
 ```
 
 </details>
@@ -50,8 +54,7 @@ module _
     map-equiv (compute-dependent-identification-function-type p f g)
 ```
 
-Relation between`compute-dependent-identification-function-type` and
-`preserves-tr`
+### Relation between `compute-dependent-identification-function-type` and `preserves-tr`
 
 ```agda
 module _
@@ -66,4 +69,27 @@ module _
       ( apd f p) a ＝
     inv-htpy (preserves-tr f p) a
   preserves-tr-apd-function refl = refl-htpy
+```
+
+### Computation of `apd` in fiberwise maps with constant codomain
+
+```agda
+module _
+  { l1 l2 l3 : Level} {X : UU l1} {x y : X} {A : X → UU l2} {B : UU l3}
+  ( f : (x : X) → A x → B)
+  where
+
+  compute-apd-fiberwise-constant-codomain :
+    ( p : x ＝ y) →
+    apd f p ＝
+    ( tr-function-type A (λ _ → B) p (f x) ∙
+      eq-htpy
+        ( λ t →
+          tr-constant-type-family p (f x (tr A (inv p) t)) ∙
+          ap
+            ( ind-Σ f)
+            ( eq-pair-Σ p (is-section-map-inv-equiv (equiv-tr A p) t))))
+            -- ( eq-pair-Σ p (is-retraction-map-equiv (equiv-tr A p) t))))
+  compute-apd-fiberwise-constant-codomain refl = inv (eq-htpy-refl-htpy (f x))
+    -- inv (eq-htpy-refl-htpy (f x))
 ```

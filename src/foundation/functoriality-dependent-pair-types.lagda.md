@@ -1,6 +1,7 @@
 # Functoriality of dependent pair types
 
 ```agda
+{-# OPTIONS --allow-unsolved-metas #-}
 module foundation.functoriality-dependent-pair-types where
 
 open import foundation-core.functoriality-dependent-pair-types public
@@ -9,8 +10,11 @@ open import foundation-core.functoriality-dependent-pair-types public
 <details><summary>Imports</summary>
 
 ```agda
+open import foundation.action-on-identifications-functions
 open import foundation.cones-over-cospans
 open import foundation.dependent-pair-types
+open import foundation.function-extensionality
+open import foundation.transport-along-identifications
 open import foundation.type-arithmetic-dependent-pair-types
 open import foundation.universe-levels
 
@@ -22,7 +26,6 @@ open import foundation-core.function-types
 open import foundation-core.homotopies
 open import foundation-core.identity-types
 open import foundation-core.pullbacks
-open import foundation-core.transport-along-identifications
 ```
 
 </details>
@@ -262,6 +265,133 @@ module _
       ( map-Σ-map-base right S)
       ( map-Σ-map-base bottom S)
   coherence-square-maps-map-Σ-map-base H (a , p) = eq-pair-Σ (H a) refl
+
+  coherence-square-maps-map-Σ-map-base' :
+    ( H : coherence-square-maps top left right bottom) →
+    coherence-square-maps
+      ( map-Σ-map-base top (S ∘ right))
+      ( map-Σ (S ∘ bottom) left (λ a → tr S (inv (H a))))
+      ( map-Σ-map-base right S)
+      ( map-Σ-map-base bottom S)
+  coherence-square-maps-map-Σ-map-base' H (a , p) =
+    -- eq-pair-Σ (H a) (is-retraction-map-equiv (equiv-tr S (H a)) p)
+    eq-pair-Σ (H a) (is-section-map-inv-equiv (equiv-tr S (H a)) p)
+```
+
+#### Horizontal pasting of commuting squares of total spaces
+
+```text
+
+Σ A A' -----> Σ B B' -----> Σ C C'
+  |             |             |
+  |             |             |
+  v             v             v
+Σ X X' -----> Σ Y Y' -----> Σ Z Z'
+```
+
+```agda
+module _
+  { l1 l2 l3 l4 l5 l6 l7 l8 l9 l10 l11 l12 : Level}
+  { A : UU l1} {A' : A → UU l2}
+  { B : UU l3} {B' : B → UU l4}
+  { C : UU l5} {C' : C → UU l6}
+  { X : UU l7} (X' : X → UU l8)
+  { Y : UU l9} {Y' : Y → UU l10}
+  { Z : UU l11} {Z' : Z → UU l12}
+  { top-left' : A → B} {top-right' : B → C} {left' : A → X} {middle' : B → Y}
+  { right' : C → Z} {bottom-left' : X → Y} {bottom-right' : Y → Z}
+  ( top-left : (a : A) → A' a → B' (top-left' a) )
+  ( top-right : (b : B) → B' b → C' (top-right' b))
+  ( left : (a : A) → A' a → X' (left' a))
+  ( middle : (b : B) → B' b → Y' (middle' b))
+  ( right : (c : C) → C' c → Z' (right' c))
+  ( bottom-left : (x : X) → X' x → Y' (bottom-left' x))
+  ( bottom-right : (y : Y) → Y' y → Z' (bottom-right' y))
+  where
+
+  _ :
+    { H' : coherence-square-maps top-left' left' middle' bottom-left'}
+    { K' : coherence-square-maps top-right' middle' right' bottom-right'}
+    ( H : (a : A) (a' : A' a) →
+      dependent-identification
+        ( Y')
+        ( H' a)
+        ( bottom-left (left' a) (left a a'))
+        ( middle (top-left' a) (top-left a a'))) →
+    ( K : (b : B) (b' : B' b) →
+      dependent-identification
+        ( Z')
+        ( K' b)
+        ( bottom-right (middle' b) (middle b b'))
+        ( right (top-right' b) (top-right b b'))) →
+    pasting-horizontal-coherence-square-maps
+      ( map-Σ B' top-left' top-left)
+      ( map-Σ C' top-right' top-right)
+      ( map-Σ X' left' left)
+      ( map-Σ Y' middle' middle)
+      ( map-Σ Z' right' right)
+      ( map-Σ Y' bottom-left' bottom-left)
+      ( map-Σ Z' bottom-right' bottom-right)
+      ( coherence-square-maps-Σ Y' top-left left middle bottom-left H)
+      ( coherence-square-maps-Σ Z' top-right middle right bottom-right K) ~
+    coherence-square-maps-Σ
+      Z'
+      (λ a → top-right (top-left' a) ∘ top-left a)
+      left
+      right
+      (λ x → bottom-right (bottom-left' x) ∘ bottom-left x)
+      {pasting-horizontal-coherence-square-maps top-left' top-right' left' middle' right' bottom-left' bottom-right' H' K'}
+      ( λ a a' →
+        tr-concat (ap bottom-right' (H' a)) (K' (top-left' a)) _ ∙
+        ap
+          ( tr Z' (K' (top-left' a)))
+          ( substitution-law-tr Z' bottom-right' (H' a) ∙
+            {!H a a'!}) ∙
+        K (top-left' a) (top-left a a'))
+  _ = {!!}
+
+```
+
+### Computation of left whiskering a homotopy given by `eq-pair-Σ` by `map-Σ`
+
+```agda
+module _
+  { l1 l2 l3 l4 : Level}
+  { A : UU l1} {X : UU l2} {B : A → UU l3} {Y : X → UU l4}
+  where
+
+  compute-ap-map-Σ-eq-pair-Σ :
+    ( f : A → X) (g : (a : A) → B a → Y (f a)) →
+    { a a' : A} (p : a ＝ a') {b : B a} {b' : B a'} →
+    ( q : dependent-identification B p b b') →
+    ( ap (map-Σ Y f g) (eq-pair-Σ p q)) ＝
+    eq-pair-Σ
+      ( ap f p)
+      ( substitution-law-tr Y f p ∙ (inv (preserves-tr g p b) ∙ ap (g a') q))
+  compute-ap-map-Σ-eq-pair-Σ f g refl refl = refl
+
+--   compute-left-whisk-map-Σ-map-base-htpy-eq :
+--     ( h : A → X) {f g : W → Σ A (B ∘ h)} (H : f ＝ g) →
+--     ( (map-Σ-map-base h B) ·l (htpy-eq H)) ~
+--     ( λ w →
+--       eq-pair-Σ
+--         ( ((h ∘ pr1) ·l htpy-eq H) w)
+--         ( tr-subst B (h ∘ pr1) (htpy-eq H w) ∙ apd pr2 (htpy-eq H w)))
+--   compute-left-whisk-map-Σ-map-base-htpy-eq h refl = refl-htpy
+
+--   compute-left-whisk-eq-pair-Σ-map-Σ-map-base :
+--     (h : A → X) {f g : W → Σ A (B ∘ h)} →
+--     ( p : (w : W) → pr1 (f w) ＝ pr1 (g w)) →
+--     ( q :
+--       ( w : W) →
+--       dependent-identification (B ∘ h) (p w) (pr2 (f w)) (pr2 (g w))) →
+--     ( (map-Σ-map-base h B) ·l (λ w → eq-pair-Σ (p w) (q w))) ~
+--     ( λ w → eq-pair-Σ ((h ·l p) w) (tr-subst B h (p w) ∙ q w))
+--   compute-left-whisk-eq-pair-Σ-map-Σ-map-base h {f} p q w =
+--     {!compute-left-whisk-map-Σ-map-base-htpy-eq h (eq-htpy ?)!}
+--     where
+--     [i] = {!(pair-eq-Σ-ap (map-Σ-map-base h B) (eq-pair-Σ (p w) (q w)))!}
+--     [ii] = pr1-pair-eq-Σ-ap (map-Σ-map-base h B) (eq-pair-Σ (p w) (q w))
 ```
 
 ## See also

@@ -114,14 +114,14 @@ module _
   {l1 l2 : Level} {A : UU l1} {B : UU l2} {f : A → B}
   where
 
-  abstract
-    is-section-map-inv-is-invertible :
-      (H : is-invertible f) → (f ∘ map-inv-is-invertible H) ~ id
-    is-section-map-inv-is-invertible H y =
-      ( inv (is-retraction-is-invertible H (f (map-inv-is-invertible H y)))) ∙
-      ( ( ap f (is-section-is-invertible H (map-inv-is-invertible H y))) ∙
-        ( is-retraction-is-invertible H y))
+  is-section-map-inv-is-invertible :
+    (H : is-invertible f) → (f ∘ map-inv-is-invertible H) ~ id
+  is-section-map-inv-is-invertible H y =
+    ( inv (is-retraction-is-invertible H (f (map-inv-is-invertible H y)))) ∙
+    ( ( ap f (is-section-is-invertible H (map-inv-is-invertible H y))) ∙
+      ( is-retraction-is-invertible H y))
 
+  abstract
     is-retraction-map-inv-is-invertible :
       (H : is-invertible f) → (map-inv-is-invertible H ∘ f) ~ id
     is-retraction-map-inv-is-invertible = is-section-is-invertible
