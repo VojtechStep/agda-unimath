@@ -22,12 +22,17 @@ open import foundation.fundamental-theorem-of-identity-types
 open import foundation.homotopies
 open import foundation.homotopy-induction
 open import foundation.identity-types
+open import foundation.retractions
+open import foundation.sections
 open import foundation.structure-identity-principle
 open import foundation.torsorial-type-families
 open import foundation.transport-along-identifications
 open import foundation.universe-levels
+open import foundation.whiskering-homotopies-composition
+open import foundation.whiskering-homotopies-concatenation
 open import foundation.whiskering-identifications-concatenation
 
+open import synthetic-homotopy-theory.action-dependent-functions-cocones-under-span-diagrams
 open import synthetic-homotopy-theory.coforks
 open import synthetic-homotopy-theory.dependent-cocones-under-span-diagrams
 ```
@@ -243,9 +248,10 @@ module _
 
 The type of dependent coforks on `P` over `e` is equivalent to the type of
 [dependent cocones](synthetic-homotopy-theory.dependent-cocones-under-span-diagrams.md)
-on `P` over a cocone corresponding to `e` via `cocone-codiagonal-cofork`.
+on `P` over a cocone corresponding to `e` via
+`cocone-span-diagram-cofork-cofork`.
 
-```text
+```agda
 module _
   { l1 l2 l3 : Level} {A : UU l1} {B : UU l2} (f g : A → B) {X : UU l3}
   ( e : cofork f g X)
@@ -255,176 +261,136 @@ module _
     { l4 : Level} (P : X → UU l4)
     where
 
-    dependent-cofork-dependent-cocone-codiagonal :
-      dependent-cocone
-        ( vertical-map-span-cocone-cofork f g)
-        ( horizontal-map-span-cocone-cofork f g)
-        ( cocone-codiagonal-cofork f g e)
+    dependent-cofork-dependent-cocone-span-diagram-cofork :
+      dependent-cocone-span-diagram
+        ( span-diagram-cofork f g)
+        ( cocone-span-diagram-cofork-cofork f g e)
         ( P) →
       dependent-cofork f g e P
-    pr1 (dependent-cofork-dependent-cocone-codiagonal k) =
-      vertical-map-dependent-cocone
-        ( vertical-map-span-cocone-cofork f g)
-        ( horizontal-map-span-cocone-cofork f g)
-        ( cocone-codiagonal-cofork f g e)
+    pr1 (dependent-cofork-dependent-cocone-span-diagram-cofork k) =
+      right-map-dependent-cocone-span-diagram
+        ( span-diagram-cofork f g)
+        ( cocone-span-diagram-cofork-cofork f g e)
         ( P)
         ( k)
-    pr2 (dependent-cofork-dependent-cocone-codiagonal k) a =
-      inv
-        ( ap
-          ( tr P (coherence-cofork f g e a))
-          ( coherence-square-dependent-cocone
-            ( vertical-map-span-cocone-cofork f g)
-            ( horizontal-map-span-cocone-cofork f g)
-            ( cocone-codiagonal-cofork f g e)
-            ( P)
-            ( k)
-            ( inl a))) ∙
-      coherence-square-dependent-cocone
-        ( vertical-map-span-cocone-cofork f g)
-        ( horizontal-map-span-cocone-cofork f g)
-        ( cocone-codiagonal-cofork f g e)
-        ( P)
-        ( k)
-        ( inr a)
+    pr2 (dependent-cofork-dependent-cocone-span-diagram-cofork k) =
+      ( ( λ {a} → tr P (coherence-cofork f g e a)) ·l
+        ( ( inv-htpy
+            ( coherence-square-dependent-cocone-span-diagram
+              ( span-diagram-cofork f g)
+              ( cocone-span-diagram-cofork-cofork f g e)
+              ( P)
+              ( k))) ·r
+          ( inl))) ∙h
+      ( ( coherence-square-dependent-cocone-span-diagram
+          ( span-diagram-cofork f g)
+          ( cocone-span-diagram-cofork-cofork f g e)
+          ( P)
+          ( k)) ·r
+        ( inr))
 
-    dependent-cocone-codiagonal-dependent-cofork :
+    dependent-cocone-span-diagram-cofork-dependent-cofork :
       dependent-cofork f g e P →
-      dependent-cocone
-        ( vertical-map-span-cocone-cofork f g)
-        ( horizontal-map-span-cocone-cofork f g)
-        ( cocone-codiagonal-cofork f g e)
+      dependent-cocone-span-diagram
+        ( span-diagram-cofork f g)
+        ( cocone-span-diagram-cofork-cofork f g e)
         ( P)
-    pr1 (dependent-cocone-codiagonal-dependent-cofork k) =
+    pr1 (dependent-cocone-span-diagram-cofork-dependent-cofork k) =
       map-dependent-cofork f g P k ∘ f
-    pr1 (pr2 (dependent-cocone-codiagonal-dependent-cofork k)) =
+    pr1 (pr2 (dependent-cocone-span-diagram-cofork-dependent-cofork k)) =
       map-dependent-cofork f g P k
-    pr2 (pr2 (dependent-cocone-codiagonal-dependent-cofork k)) (inl a) =
+    pr2 (pr2 (dependent-cocone-span-diagram-cofork-dependent-cofork k)) (inl a) =
       refl
-    pr2 (pr2 (dependent-cocone-codiagonal-dependent-cofork k)) (inr a) =
+    pr2 (pr2 (dependent-cocone-span-diagram-cofork-dependent-cofork k)) (inr a) =
       coherence-dependent-cofork f g P k a
 
     abstract
-      is-section-dependent-cocone-codiagonal-dependent-cofork :
-        ( ( dependent-cofork-dependent-cocone-codiagonal) ∘
-          ( dependent-cocone-codiagonal-dependent-cofork)) ~
-        ( id)
-      is-section-dependent-cocone-codiagonal-dependent-cofork k =
+      is-section-dependent-cocone-span-diagram-cofork-dependent-cofork :
+        is-section
+          ( dependent-cofork-dependent-cocone-span-diagram-cofork)
+          ( dependent-cocone-span-diagram-cofork-dependent-cofork)
+      is-section-dependent-cocone-span-diagram-cofork-dependent-cofork k =
         eq-htpy-dependent-cofork f g P
-          ( dependent-cofork-dependent-cocone-codiagonal
-            ( dependent-cocone-codiagonal-dependent-cofork k))
+          ( dependent-cofork-dependent-cocone-span-diagram-cofork
+            ( dependent-cocone-span-diagram-cofork-dependent-cofork k))
           ( k)
           ( refl-htpy , right-unit-htpy)
 
-      is-retraction-dependent-cocone-codiagonal-dependent-cofork :
-        ( ( dependent-cocone-codiagonal-dependent-cofork) ∘
-          ( dependent-cofork-dependent-cocone-codiagonal)) ~
-        ( id)
-      is-retraction-dependent-cocone-codiagonal-dependent-cofork d =
-        eq-htpy-dependent-cocone
-          ( vertical-map-span-cocone-cofork f g)
-          ( horizontal-map-span-cocone-cofork f g)
-          ( cocone-codiagonal-cofork f g e)
+      is-retraction-dependent-cocone-span-diagram-cofork-dependent-cofork :
+        is-retraction
+          ( dependent-cofork-dependent-cocone-span-diagram-cofork)
+          ( dependent-cocone-span-diagram-cofork-dependent-cofork)
+      is-retraction-dependent-cocone-span-diagram-cofork-dependent-cofork d =
+        eq-htpy-dependent-cocone-span-diagram
+          ( span-diagram-cofork f g)
+          ( cocone-span-diagram-cofork-cofork f g e)
           ( P)
-          ( dependent-cocone-codiagonal-dependent-cofork
-            ( dependent-cofork-dependent-cocone-codiagonal d))
+          ( dependent-cocone-span-diagram-cofork-dependent-cofork
+            ( dependent-cofork-dependent-cocone-span-diagram-cofork d))
           ( d)
           ( inv-htpy
-            ( ( coherence-square-dependent-cocone
-                ( vertical-map-span-cocone-cofork f g)
-                ( horizontal-map-span-cocone-cofork f g)
-                ( cocone-codiagonal-cofork f g e)
+            ( ( coherence-square-dependent-cocone-span-diagram
+                ( span-diagram-cofork f g)
+                ( cocone-span-diagram-cofork-cofork f g e)
                 ( P)
                 ( d)) ∘
               ( inl)) ,
             ( refl-htpy) ,
             ( right-unit-htpy ∙h
-              ( λ where
-                ( inl a) →
-                  inv
-                    ( ( right-whisker-concat
-                        ( ap-id
-                          ( inv
-                            ( coherence-square-dependent-cocone
-                              ( vertical-map-span-cocone-cofork f g)
-                              ( horizontal-map-span-cocone-cofork f g)
-                              ( cocone-codiagonal-cofork f g e)
-                              ( P)
-                              ( d)
-                              ( inl a))))
-                        ( coherence-square-dependent-cocone
-                          ( vertical-map-span-cocone-cofork f g)
-                          ( horizontal-map-span-cocone-cofork f g)
-                          ( cocone-codiagonal-cofork f g e)
-                          ( P)
-                          ( d)
-                          ( inl a))) ∙
-                      ( left-inv
-                        ( coherence-square-dependent-cocone
-                          ( vertical-map-span-cocone-cofork f g)
-                          ( horizontal-map-span-cocone-cofork f g)
-                          ( cocone-codiagonal-cofork f g e)
-                          ( P)
-                          ( d)
-                          ( inl a))))
-                ( inr a) →
-                  right-whisker-concat
-                    ( inv
-                      ( ap-inv
-                        ( tr P (coherence-cofork f g e a))
-                        ( coherence-square-dependent-cocone
-                          ( vertical-map-span-cocone-cofork f g)
-                          ( horizontal-map-span-cocone-cofork f g)
-                          ( cocone-codiagonal-cofork f g e)
-                          ( P)
-                          ( d)
-                          ( inl a))))
-                    ( coherence-square-dependent-cocone
-                      ( vertical-map-span-cocone-cofork f g)
-                      ( horizontal-map-span-cocone-cofork f g)
-                      ( cocone-codiagonal-cofork f g e)
-                      ( P)
-                      ( d)
-                      ( inr a)))))
+              ( ind-coproduct _
+                ( inv-htpy
+                  ( right-whisker-concat-htpy
+                    ( left-unit-law-left-whisker-comp _)
+                    ( ( coherence-square-dependent-cocone-span-diagram
+                        ( span-diagram-cofork f g)
+                        ( cocone-span-diagram-cofork-cofork f g e)
+                        ( P)
+                        ( d)) ·r
+                      ( inl)) ∙h
+                  ( left-inv-htpy
+                    ( ( coherence-square-dependent-cocone-span-diagram
+                        ( span-diagram-cofork f g)
+                        ( cocone-span-diagram-cofork-cofork f g e)
+                        ( P)
+                        ( d)) ·r
+                      ( inl)))))
+                ( refl-htpy))))
 
-    is-equiv-dependent-cofork-dependent-cocone-codiagonal :
-      is-equiv dependent-cofork-dependent-cocone-codiagonal
-    is-equiv-dependent-cofork-dependent-cocone-codiagonal =
+    is-equiv-dependent-cofork-dependent-cocone-span-diagonal-cofork :
+      is-equiv dependent-cofork-dependent-cocone-span-diagram-cofork
+    is-equiv-dependent-cofork-dependent-cocone-span-diagonal-cofork =
       is-equiv-is-invertible
-        ( dependent-cocone-codiagonal-dependent-cofork)
-        ( is-section-dependent-cocone-codiagonal-dependent-cofork)
-        ( is-retraction-dependent-cocone-codiagonal-dependent-cofork)
+        ( dependent-cocone-span-diagram-cofork-dependent-cofork)
+        ( is-section-dependent-cocone-span-diagram-cofork-dependent-cofork)
+        ( is-retraction-dependent-cocone-span-diagram-cofork-dependent-cofork)
 
-    equiv-dependent-cofork-dependent-cocone-codiagonal :
-      dependent-cocone
-        ( vertical-map-span-cocone-cofork f g)
-        ( horizontal-map-span-cocone-cofork f g)
-        ( cocone-codiagonal-cofork f g e)
+    equiv-dependent-cofork-dependent-cocone-span-diagram-cofork :
+      dependent-cocone-span-diagram
+        ( span-diagram-cofork f g)
+        ( cocone-span-diagram-cofork-cofork f g e)
         ( P) ≃
       dependent-cofork f g e P
-    pr1 equiv-dependent-cofork-dependent-cocone-codiagonal =
-      dependent-cofork-dependent-cocone-codiagonal
-    pr2 equiv-dependent-cofork-dependent-cocone-codiagonal =
-      is-equiv-dependent-cofork-dependent-cocone-codiagonal
+    pr1 equiv-dependent-cofork-dependent-cocone-span-diagram-cofork =
+      dependent-cofork-dependent-cocone-span-diagram-cofork
+    pr2 equiv-dependent-cofork-dependent-cocone-span-diagram-cofork =
+      is-equiv-dependent-cofork-dependent-cocone-span-diagonal-cofork
 
-  triangle-dependent-cofork-dependent-cocone-codiagonal :
+  triangle-dependent-cofork-dependent-cocone-span-diagram-cofork :
     { l4 : Level} (P : X → UU l4) →
     coherence-triangle-maps
       ( dependent-cofork-map f g e)
-      ( dependent-cofork-dependent-cocone-codiagonal P)
-      ( dependent-cocone-map
-        ( vertical-map-span-cocone-cofork f g)
-        ( horizontal-map-span-cocone-cofork f g)
-        ( cocone-codiagonal-cofork f g e)
+      ( dependent-cofork-dependent-cocone-span-diagram-cofork P)
+      ( dependent-cocone-map-span-diagram
+        ( span-diagram-cofork f g)
+        ( cocone-span-diagram-cofork-cofork f g e)
         ( P))
-  triangle-dependent-cofork-dependent-cocone-codiagonal P h =
+  triangle-dependent-cofork-dependent-cocone-span-diagram-cofork P h =
     eq-htpy-dependent-cofork f g P
       ( dependent-cofork-map f g e h)
-      ( dependent-cofork-dependent-cocone-codiagonal P
-        ( dependent-cocone-map
-          ( vertical-map-span-cocone-cofork f g)
-          ( horizontal-map-span-cocone-cofork f g)
-          ( cocone-codiagonal-cofork f g e)
+      ( dependent-cofork-dependent-cocone-span-diagram-cofork P
+        ( dependent-cocone-map-span-diagram
+          ( span-diagram-cofork f g)
+          ( cocone-span-diagram-cofork-cofork f g e)
           ( P)
           ( h)))
       ( refl-htpy ,

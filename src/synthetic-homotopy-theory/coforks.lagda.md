@@ -21,11 +21,15 @@ open import foundation.fundamental-theorem-of-identity-types
 open import foundation.homotopies
 open import foundation.homotopy-induction
 open import foundation.identity-types
+open import foundation.retractions
+open import foundation.sections
+open import foundation.span-diagrams
 open import foundation.structure-identity-principle
 open import foundation.torsorial-type-families
 open import foundation.universe-levels
 open import foundation.whiskering-homotopies-composition
 
+open import synthetic-homotopy-theory.action-functions-cocones-under-span-diagrams
 open import synthetic-homotopy-theory.cocones-under-span-diagrams
 ```
 
@@ -217,142 +221,136 @@ span
 A <----- A + A -----> B.
 ```
 
-```text
+```agda
 module _
   { l1 l2 : Level} {A : UU l1} {B : UU l2} (f g : A → B)
   where
 
-  vertical-map-span-cocone-cofork : A + A → A
-  vertical-map-span-cocone-cofork = codiagonal A
+  left-map-span-cocone-cofork : A + A → A
+  left-map-span-cocone-cofork = codiagonal A
 
-  horizontal-map-span-cocone-cofork : A + A → B
-  horizontal-map-span-cocone-cofork (inl a) = f a
-  horizontal-map-span-cocone-cofork (inr a) = g a
+  right-map-span-cocone-cofork : A + A → B
+  right-map-span-cocone-cofork (inl a) = f a
+  right-map-span-cocone-cofork (inr a) = g a
+
+  span-diagram-cofork : span-diagram l1 l2 l1
+  span-diagram-cofork =
+    make-span-diagram
+      ( left-map-span-cocone-cofork)
+      ( right-map-span-cocone-cofork)
 
   module _
     { l3 : Level} {X : UU l3}
     where
 
-    cofork-cocone-codiagonal :
-      cocone
-        ( vertical-map-span-cocone-cofork)
-        ( horizontal-map-span-cocone-cofork)
-        ( X) →
+    cofork-cocone-span-diagram-cofork :
+      cocone-span-diagram span-diagram-cofork X →
       cofork f g X
-    pr1 (cofork-cocone-codiagonal c) =
-      right-map-cocone
-        ( vertical-map-span-cocone-cofork)
-        ( horizontal-map-span-cocone-cofork)
-        ( c)
-    pr2 (cofork-cocone-codiagonal c) =
+    pr1 (cofork-cocone-span-diagram-cofork c) =
+      right-map-cocone-span-diagram span-diagram-cofork c
+    pr2 (cofork-cocone-span-diagram-cofork c) =
       ( ( inv-htpy
-          ( coherence-square-cocone
-            ( vertical-map-span-cocone-cofork)
-            ( horizontal-map-span-cocone-cofork)
-            ( c))) ·r
+          ( coherence-square-cocone-span-diagram span-diagram-cofork c)) ·r
         ( inl)) ∙h
-      ( ( coherence-square-cocone
-          ( vertical-map-span-cocone-cofork)
-          ( horizontal-map-span-cocone-cofork)
-          ( c)) ·r
+      ( ( coherence-square-cocone-span-diagram span-diagram-cofork c) ·r
         ( inr))
 
-    left-map-cocone-cofork : cofork f g X → A → X
-    left-map-cocone-cofork e = map-cofork f g e ∘ f
+    left-map-cocone-span-diagram-cofork-cofork : cofork f g X → A → X
+    left-map-cocone-span-diagram-cofork-cofork e = map-cofork f g e ∘ f
 
-    right-map-cocone-cofork : cofork f g X → B → X
-    right-map-cocone-cofork e = map-cofork f g e
+    right-map-cocone-span-diagram-cofork-cofork : cofork f g X → B → X
+    right-map-cocone-span-diagram-cofork-cofork e = map-cofork f g e
 
-    coherence-square-cocone-cofork :
+    coherence-square-cocone-span-diagram-cofork-cofork :
       ( e : cofork f g X) →
       coherence-square-maps
-        ( horizontal-map-span-cocone-cofork)
-        ( vertical-map-span-cocone-cofork)
-        ( right-map-cocone-cofork e)
-        ( left-map-cocone-cofork e)
-    coherence-square-cocone-cofork e (inl a) = refl
-    coherence-square-cocone-cofork e (inr a) = coherence-cofork f g e a
+        ( right-map-span-cocone-cofork)
+        ( left-map-span-cocone-cofork)
+        ( right-map-cocone-span-diagram-cofork-cofork e)
+        ( left-map-cocone-span-diagram-cofork-cofork e)
+    coherence-square-cocone-span-diagram-cofork-cofork e (inl a) =
+      refl
+    coherence-square-cocone-span-diagram-cofork-cofork e (inr a) =
+      coherence-cofork f g e a
 
-    cocone-codiagonal-cofork :
+    cocone-span-diagram-cofork-cofork :
       cofork f g X →
-      cocone
-        ( vertical-map-span-cocone-cofork)
-        ( horizontal-map-span-cocone-cofork)
-        ( X)
-    pr1 (cocone-codiagonal-cofork e) = left-map-cocone-cofork e
-    pr1 (pr2 (cocone-codiagonal-cofork e)) = right-map-cocone-cofork e
-    pr2 (pr2 (cocone-codiagonal-cofork e)) = coherence-square-cocone-cofork e
+      cocone-span-diagram span-diagram-cofork X
+    pr1 (cocone-span-diagram-cofork-cofork e) =
+      left-map-cocone-span-diagram-cofork-cofork e
+    pr1 (pr2 (cocone-span-diagram-cofork-cofork e)) =
+      right-map-cocone-span-diagram-cofork-cofork e
+    pr2 (pr2 (cocone-span-diagram-cofork-cofork e)) =
+      coherence-square-cocone-span-diagram-cofork-cofork e
 
     abstract
-      is-section-cocone-codiagonal-cofork :
-        cofork-cocone-codiagonal ∘ cocone-codiagonal-cofork ~ id
-      is-section-cocone-codiagonal-cofork e =
+      is-section-cocone-span-diagram-cofork-cofork :
+        is-section
+          ( cofork-cocone-span-diagram-cofork)
+          ( cocone-span-diagram-cofork-cofork)
+      is-section-cocone-span-diagram-cofork-cofork e =
         eq-htpy-cofork f g
-          ( cofork-cocone-codiagonal (cocone-codiagonal-cofork e))
+          ( cofork-cocone-span-diagram-cofork
+            ( cocone-span-diagram-cofork-cofork e))
           ( e)
           ( refl-htpy , right-unit-htpy)
 
-      is-retraction-cocone-codiagonal-fork :
-        cocone-codiagonal-cofork ∘ cofork-cocone-codiagonal ~ id
-      is-retraction-cocone-codiagonal-fork c =
-        eq-htpy-cocone
-          ( vertical-map-span-cocone-cofork)
-          ( horizontal-map-span-cocone-cofork)
-          ( cocone-codiagonal-cofork (cofork-cocone-codiagonal c))
+      is-retraction-cocone-span-diagram-cofork-cofork :
+        is-retraction
+          ( cofork-cocone-span-diagram-cofork)
+          ( cocone-span-diagram-cofork-cofork)
+      is-retraction-cocone-span-diagram-cofork-cofork c =
+        eq-htpy-cocone-span-diagram
+          ( span-diagram-cofork)
+          ( cocone-span-diagram-cofork-cofork
+            ( cofork-cocone-span-diagram-cofork c))
           ( c)
           ( ( ( inv-htpy
-                ( coherence-square-cocone
-                  ( vertical-map-span-cocone-cofork)
-                  ( horizontal-map-span-cocone-cofork)
+                ( coherence-square-cocone-span-diagram span-diagram-cofork
                   ( c))) ·r
               ( inl)) ,
             ( refl-htpy) ,
-            ( λ where
-              ( inl a) →
-                inv
-                  ( left-inv
-                    ( coherence-square-cocone
-                      ( vertical-map-span-cocone-cofork)
-                      ( horizontal-map-span-cocone-cofork)
-                      ( c)
-                      ( inl a)))
-              ( inr a) → right-unit))
+            ( ind-coproduct _
+              ( inv-htpy
+                ( left-inv-htpy
+                  ( ( coherence-square-cocone-span-diagram
+                      ( span-diagram-cofork)
+                      ( c)) ·r
+                    ( inl))))
+              ( right-unit-htpy)))
 
-    is-equiv-cofork-cocone-codiagonal :
-      is-equiv cofork-cocone-codiagonal
-    is-equiv-cofork-cocone-codiagonal =
+    is-equiv-cofork-cocone-span-diagram-cofork :
+      is-equiv cofork-cocone-span-diagram-cofork
+    is-equiv-cofork-cocone-span-diagram-cofork =
       is-equiv-is-invertible
-        ( cocone-codiagonal-cofork)
-        ( is-section-cocone-codiagonal-cofork)
-        ( is-retraction-cocone-codiagonal-fork)
+        ( cocone-span-diagram-cofork-cofork)
+        ( is-section-cocone-span-diagram-cofork-cofork)
+        ( is-retraction-cocone-span-diagram-cofork-cofork)
 
-    equiv-cocone-codiagonal-cofork :
-      cocone
-        ( vertical-map-span-cocone-cofork)
-        ( horizontal-map-span-cocone-cofork)
-        ( X) ≃
+    equiv-cofork-cocone-span-diagram-cofork :
+      cocone-span-diagram span-diagram-cofork X ≃
       cofork f g X
-    pr1 equiv-cocone-codiagonal-cofork = cofork-cocone-codiagonal
-    pr2 equiv-cocone-codiagonal-cofork = is-equiv-cofork-cocone-codiagonal
+    pr1 equiv-cofork-cocone-span-diagram-cofork =
+      cofork-cocone-span-diagram-cofork
+    pr2 equiv-cofork-cocone-span-diagram-cofork =
+      is-equiv-cofork-cocone-span-diagram-cofork
 
   triangle-cofork-cocone :
     { l3 l4 : Level} {X : UU l3} {Y : UU l4} →
     ( e : cofork f g X) →
     coherence-triangle-maps
       ( cofork-map f g e {Y = Y})
-      ( cofork-cocone-codiagonal)
-      ( cocone-map
-        ( vertical-map-span-cocone-cofork)
-        ( horizontal-map-span-cocone-cofork)
-        ( cocone-codiagonal-cofork e))
+      ( cofork-cocone-span-diagram-cofork)
+      ( cocone-map-span-diagram
+        ( span-diagram-cofork)
+        ( cocone-span-diagram-cofork-cofork e))
   triangle-cofork-cocone e h =
     eq-htpy-cofork f g
       ( cofork-map f g e h)
-      ( cofork-cocone-codiagonal
-        ( cocone-map
-          ( vertical-map-span-cocone-cofork)
-          ( horizontal-map-span-cocone-cofork)
-          ( cocone-codiagonal-cofork e)
+      ( cofork-cocone-span-diagram-cofork
+        ( cocone-map-span-diagram
+          ( span-diagram-cofork)
+          ( cocone-span-diagram-cofork-cofork e)
           ( h)))
       ( refl-htpy ,
         right-unit-htpy)
