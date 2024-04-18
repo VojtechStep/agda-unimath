@@ -750,6 +750,67 @@ module _
       ( is-equiv-shift-cocone-sequential-diagram k)
 ```
 
+```agda
+module _
+  {l1 l2 l3 : Level} {A : sequential-diagram l1}
+  {X : UU l2} {c : cocone-sequential-diagram A X}
+  (up-c : universal-property-sequential-colimit c)
+  (k : ℕ)
+  {Y : UU l3} {c' : cocone-sequential-diagram (shift-sequential-diagram k A) Y}
+  (up-c' : universal-property-sequential-colimit c')
+  where
+
+  -- map-equiv-sequential-colimit-shift-sequential-diagram : X → Y
+  -- map-equiv-sequential-colimit-shift-sequential-diagram =
+  --   map-universal-property-sequential-colimit
+  --     ( up-shift-cocone-sequential-diagram k up-c)
+  --     ( c')
+
+  map-inv-equiv-sequential-colimit-shift-sequential-diagram : Y → X
+  map-inv-equiv-sequential-colimit-shift-sequential-diagram =
+    map-universal-property-sequential-colimit
+      ( up-c')
+      ( shift-cocone-sequential-diagram k c)
+
+  equiv-sequential-colimit-shift-sequential-diagram : X ≃ Y
+  equiv-sequential-colimit-shift-sequential-diagram =
+    equiv-uniquely-unique-sequential-colimit
+      ( up-shift-cocone-sequential-diagram k up-c)
+      ( up-c')
+
+  map-sequential-colimit-shift-sequential-diagram : X → Y
+  map-sequential-colimit-shift-sequential-diagram =
+    map-uniquely-unique-sequential-colimit
+      ( up-shift-cocone-sequential-diagram k up-c)
+      ( up-c')
+
+  htpy-map-sequential-colimit-shift-sequential-diagram :
+    (n : ℕ) →
+    ( map-sequential-colimit-shift-sequential-diagram ∘
+      map-cocone-sequential-diagram
+        ( shift-cocone-sequential-diagram k c)
+        ( n) ) ~
+    map-cocone-sequential-diagram c' n
+  htpy-map-sequential-colimit-shift-sequential-diagram =
+    htpy-uniquely-unique-sequential-colimit
+      ( up-shift-cocone-sequential-diagram k up-c)
+      ( up-c')
+
+  inv-equiv-sequential-colimit-shift-sequential-diagram : Y ≃ X
+  pr1 inv-equiv-sequential-colimit-shift-sequential-diagram =
+    map-inv-equiv-sequential-colimit-shift-sequential-diagram
+  pr2 inv-equiv-sequential-colimit-shift-sequential-diagram =
+    is-equiv-universal-property-sequential-colimit-universal-property-sequential-colimit
+      ( _)
+      ( _)
+      ( _)
+      ( htpy-cocone-universal-property-sequential-colimit
+        ( up-c')
+        ( shift-cocone-sequential-diagram k c))
+      ( up-c')
+      ( up-shift-cocone-sequential-diagram k up-c)
+```
+
 We instantiate this theorem for the standard sequential colimits, giving us
 `A[k]∞ ≃ A∞`.
 
@@ -762,12 +823,9 @@ module _
     (k : ℕ) →
     standard-sequential-colimit (shift-sequential-diagram k A) ≃
     standard-sequential-colimit A
-  pr1 (compute-sequential-colimit-shift-sequential-diagram k) =
-    cogap-standard-sequential-colimit
-      ( shift-cocone-sequential-diagram
-        ( k)
-        ( cocone-standard-sequential-colimit A))
-  pr2 (compute-sequential-colimit-shift-sequential-diagram k) =
-    is-sequential-colimit-universal-property _
-      ( up-shift-cocone-sequential-diagram k up-standard-sequential-colimit)
+  compute-sequential-colimit-shift-sequential-diagram k =
+    inv-equiv-sequential-colimit-shift-sequential-diagram
+      ( up-standard-sequential-colimit)
+      ( k)
+      ( up-standard-sequential-colimit)
 ```

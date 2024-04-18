@@ -22,6 +22,7 @@ open import foundation.universe-levels
 
 open import synthetic-homotopy-theory.cocones-under-sequential-diagrams
 open import synthetic-homotopy-theory.descent-data-sequential-colimits
+open import synthetic-homotopy-theory.families-descent-data-sequential-colimits
 open import synthetic-homotopy-theory.sequential-diagrams
 open import synthetic-homotopy-theory.universal-property-sequential-colimits
 ```
@@ -134,4 +135,27 @@ module _
   family-cocone-descent-data-sequential-colimit =
     map-inv-equiv
       ( equiv-descent-data-family-cocone-sequential-diagram)
+
+  equiv-family-cocone-descent-data-sequential-colimit :
+    (B : descent-data-sequential-colimit A l3) →
+    equiv-descent-data-sequential-colimit
+      ( B)
+      ( descent-data-family-cocone-sequential-diagram c
+        ( family-cocone-descent-data-sequential-colimit B))
+  equiv-family-cocone-descent-data-sequential-colimit B =
+    equiv-eq-descent-data-sequential-colimit
+      ( inv
+        ( is-section-map-inv-equiv
+          ( equiv-descent-data-family-cocone-sequential-diagram)
+          ( B)))
+
+  family-with-descent-data-descent-data-sequential-colimit :
+    descent-data-sequential-colimit A l3 →
+    family-with-descent-data-sequential-colimit c l3
+  pr1 (family-with-descent-data-descent-data-sequential-colimit B) =
+    family-cocone-descent-data-sequential-colimit B
+  pr1 (pr2 (family-with-descent-data-descent-data-sequential-colimit B)) =
+    B
+  pr2 (pr2 (family-with-descent-data-descent-data-sequential-colimit B)) =
+    equiv-family-cocone-descent-data-sequential-colimit B
 ```

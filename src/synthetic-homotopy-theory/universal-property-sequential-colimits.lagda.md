@@ -337,6 +337,9 @@ module _
 
 ### Unique uniqueness of of sequential colimits
 
+Given a sequential diagram `(A, a)` and two sequential colimits `X, Y`, there is
+a unique equivalence `e : X ≃ Y` such that
+
 ```agda
 module _
   { l1 l2 l3 : Level} {A : sequential-diagram l1} {X : UU l2} {Y : UU l3}
@@ -367,6 +370,23 @@ module _
           ( htpy-cocone-universal-property-sequential-colimit up-c c')
           ( up-c)
           ( up-c'))
+
+  equiv-uniquely-unique-sequential-colimit : X ≃ Y
+  equiv-uniquely-unique-sequential-colimit =
+    pr1 (center uniquely-unique-sequential-colimit)
+
+  map-uniquely-unique-sequential-colimit : X → Y
+  map-uniquely-unique-sequential-colimit =
+    map-equiv equiv-uniquely-unique-sequential-colimit
+
+  htpy-uniquely-unique-sequential-colimit :
+    (n : ℕ) →
+    ( map-uniquely-unique-sequential-colimit ∘
+      map-cocone-sequential-diagram c n) ~
+    map-cocone-sequential-diagram c' n
+  htpy-uniquely-unique-sequential-colimit =
+    htpy-htpy-cocone-sequential-diagram
+      ( pr2 (center uniquely-unique-sequential-colimit))
 ```
 
 ### Inclusion maps of a sequential colimit under a sequential diagram of equivalences are equivalences

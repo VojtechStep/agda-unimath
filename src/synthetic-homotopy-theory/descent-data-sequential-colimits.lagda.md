@@ -11,6 +11,7 @@ open import elementary-number-theory.natural-numbers
 
 open import foundation.dependent-pair-types
 open import foundation.equivalences
+open import foundation.identity-types
 open import foundation.universe-levels
 
 open import synthetic-homotopy-theory.cocones-under-sequential-diagrams
@@ -180,6 +181,17 @@ module _
   id-equiv-descent-data-sequential-colimit =
     id-equiv-dependent-sequential-diagram
       ( dependent-sequential-diagram-equifibered-sequential-diagram B)
+
+module _
+  {l1 l2 : Level} {A : sequential-diagram l1}
+  {B : descent-data-sequential-colimit A l2}
+  {C : descent-data-sequential-colimit A l2}
+  where
+
+  equiv-eq-descent-data-sequential-colimit :
+    B ＝ C → equiv-descent-data-sequential-colimit B C
+  equiv-eq-descent-data-sequential-colimit refl =
+    id-equiv-descent-data-sequential-colimit B
 ```
 
 ### Descent data induced by families over cocones under sequential diagrams

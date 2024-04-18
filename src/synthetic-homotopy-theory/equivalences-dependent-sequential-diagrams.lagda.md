@@ -13,6 +13,7 @@ open import foundation.commuting-squares-of-maps
 open import foundation.dependent-pair-types
 open import foundation.equivalences
 open import foundation.homotopies
+open import foundation.identity-types
 open import foundation.universe-levels
 
 open import synthetic-homotopy-theory.dependent-sequential-diagrams
@@ -195,4 +196,19 @@ module _
     (map-hom-dependent-sequential-diagram C h n a , is-equiv-map n a)
   pr2 (equiv-hom-dependent-sequential-diagram is-equiv-map) =
     coh-hom-dependent-sequential-diagram C h
+```
+
+### Equivalences characterize identity types of dependent sequential diagrams
+
+```agda
+module _
+  {l1 l2 : Level} {A : sequential-diagram l1}
+  {B : dependent-sequential-diagram A l2}
+  {C : dependent-sequential-diagram A l2}
+  where
+
+  equiv-eq-dependent-sequential-diagram :
+    B ＝ C → equiv-dependent-sequential-diagram B C
+  equiv-eq-dependent-sequential-diagram refl =
+    id-equiv-dependent-sequential-diagram B
 ```
