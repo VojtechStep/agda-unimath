@@ -1,29 +1,41 @@
 # The universal property of sequential colimits
 
 ```agda
+{-# OPTIONS --allow-unsolved-metas #-}
 module synthetic-homotopy-theory.universal-property-sequential-colimits where
 ```
 
 <details><summary>Imports</summary>
 
 ```agda
+open import elementary-number-theory.addition-natural-numbers
+open import elementary-number-theory.natural-numbers
+
 open import foundation.action-on-identifications-functions
+open import foundation.commuting-squares-of-homotopies
 open import foundation.commuting-triangles-of-maps
 open import foundation.contractible-maps
 open import foundation.contractible-types
 open import foundation.dependent-pair-types
 open import foundation.equivalences
 open import foundation.fibers-of-maps
+open import foundation.function-extensionality
 open import foundation.functoriality-dependent-pair-types
 open import foundation.homotopies
 open import foundation.identity-types
+open import foundation.path-algebra
 open import foundation.precomposition-functions
+open import foundation.retractions
+open import foundation.sections
 open import foundation.subtype-identity-principle
+open import foundation.transposition-identifications-along-equivalences
 open import foundation.universal-property-equivalences
 open import foundation.universe-levels
+open import foundation.whiskering-homotopies-composition
 
 open import synthetic-homotopy-theory.cocones-under-sequential-diagrams
 open import synthetic-homotopy-theory.coforks
+open import synthetic-homotopy-theory.composite-maps-sequential-diagrams
 open import synthetic-homotopy-theory.sequential-diagrams
 open import synthetic-homotopy-theory.universal-property-coequalizers
 ```
@@ -99,10 +111,10 @@ module _
 
 ```agda
 module _
-  { l1 l2 l3 : Level} {A : sequential-diagram l1} {X : UU l2}
-  { c : cocone-sequential-diagram A X} {Y : UU l3}
+  { l1 l2 l3 : Level} {A : sequential-diagram l1}
+  { X : UU l2} {c : cocone-sequential-diagram A X}
   ( up-sequential-colimit : universal-property-sequential-colimit c)
-  ( c' : cocone-sequential-diagram A Y)
+  { Y : UU l3} (c' : cocone-sequential-diagram A Y)
   where
 
   htpy-cocone-universal-property-sequential-colimit :
@@ -120,6 +132,29 @@ module _
           ( c')))
       ( c')
       ( is-section-map-inv-is-equiv (up-sequential-colimit Y) c')
+
+  htpy-htpy-cocone-universal-property-sequential-colimit :
+    (n : ℕ) →
+    coherence-triangle-maps'
+      ( map-cocone-sequential-diagram c' n)
+      ( map-universal-property-sequential-colimit up-sequential-colimit c')
+      ( map-cocone-sequential-diagram c n)
+  htpy-htpy-cocone-universal-property-sequential-colimit =
+    htpy-htpy-cocone-sequential-diagram
+      ( htpy-cocone-universal-property-sequential-colimit)
+
+  coherence-htpy-htpy-cocone-universal-property-sequential-colimit :
+    (n : ℕ) →
+    coherence-square-homotopies
+      ( htpy-htpy-cocone-universal-property-sequential-colimit n)
+      ( ( map-universal-property-sequential-colimit up-sequential-colimit c') ·l
+        ( coherence-cocone-sequential-diagram c n))
+      ( coherence-cocone-sequential-diagram c' n)
+      ( ( htpy-htpy-cocone-universal-property-sequential-colimit (succ-ℕ n)) ·r
+        ( map-sequential-diagram A n))
+  coherence-htpy-htpy-cocone-universal-property-sequential-colimit =
+    coherence-htpy-htpy-cocone-sequential-diagram
+      ( htpy-cocone-universal-property-sequential-colimit)
 
   abstract
     uniqueness-map-universal-property-sequential-colimit :
@@ -139,6 +174,27 @@ module _
               ( c')))
         ( is-contr-map-is-equiv (up-sequential-colimit Y) c')
 ```
+
+### TODO title
+
+up-c c ~ id
+
+```agda
+module _
+  { l1 l2 : Level} {A : sequential-diagram l1}
+  { X : UU l2} {c : cocone-sequential-diagram A X}
+  ( up-c : universal-property-sequential-colimit c)
+  where
+
+  bla : map-universal-property-sequential-colimit up-c c ~ (λ x → x)
+  bla =
+    htpy-eq
+      ( map-eq-transpose-equiv-inv
+        ( equiv-universal-property-sequential-colimit up-c)
+        ( inv
+          ( cocone-map-id-sequential-diagram A c)))
+```
+
 
 ### Correspondence between universal properties of sequential colimits and coequalizers
 
@@ -288,7 +344,7 @@ module _
         ( is-equiv-precomp-is-equiv h is-equiv-h Z)
 ```
 
-### Unique uniqueness of of sequential colimits
+### Unique uniqueness of sequential colimits
 
 ```agda
 module _
@@ -320,4 +376,72 @@ module _
           ( htpy-cocone-universal-property-sequential-colimit up-c c')
           ( up-c)
           ( up-c'))
+```
+
+### TODO title
+
+```agda
+module _
+  { l1 : Level} (X : UU l1)
+  where
+
+  cocone-const-sequential-diagram :
+    cocone-sequential-diagram (constant-sequential-diagram X) X
+  pr1 cocone-const-sequential-diagram n x = x
+  pr2 cocone-const-sequential-diagram n x = refl
+
+  module _
+    {l : Level} (Y : UU l)
+    where
+
+    map-inv-cocone-map-constant-sequential-diagram :
+      cocone-sequential-diagram (constant-sequential-diagram X) Y →
+      X → Y
+    map-inv-cocone-map-constant-sequential-diagram c x =
+      map-cocone-sequential-diagram c 0 x
+
+    htpy-blabla :
+      (c : cocone-sequential-diagram (constant-sequential-diagram X) Y) →
+      htpy-cocone-sequential-diagram
+        ( cocone-map-sequential-diagram
+          ( cocone-const-sequential-diagram)
+          ( map-inv-cocone-map-constant-sequential-diagram c))
+        ( c)
+    pr1 (htpy-blabla c) n x =
+      coherence-comp-foo-map-cocone-sequential-diagram c n x ∙
+      ap (pr1 c n) (comp-foo-map-const-sequential-diagram X n x)
+    pr2 (htpy-blabla c) zero-ℕ = right-unit-htpy
+    pr2 (htpy-blabla c) (succ-ℕ n) x =
+      {!!}
+      -- left-whisk-square-identification
+      --  (coherence-comp-foo-map-cocone-sequential-diagram c n x ∙
+      --   pr2 c n
+      --   (comp-foo-map-sequential-diagram (constant-sequential-diagram X) n
+      --    x))
+      --  {!!}
+
+    is-section-map-inv-cocone-map-constant-sequential-diagram :
+      is-section
+        ( cocone-map-sequential-diagram cocone-const-sequential-diagram)
+        ( map-inv-cocone-map-constant-sequential-diagram)
+    is-section-map-inv-cocone-map-constant-sequential-diagram c =
+      eq-htpy-cocone-sequential-diagram
+        ( constant-sequential-diagram X)
+        ( _)
+        ( _)
+        ( htpy-blabla c)
+
+    is-retraction-map-inv-cocone-map-constant-sequential-diagram :
+      is-retraction
+        ( cocone-map-sequential-diagram cocone-const-sequential-diagram)
+        ( map-inv-cocone-map-constant-sequential-diagram)
+    is-retraction-map-inv-cocone-map-constant-sequential-diagram = refl-htpy
+
+  up-sequential-colimit-constant-sequential-diagram :
+    universal-property-sequential-colimit cocone-const-sequential-diagram
+  up-sequential-colimit-constant-sequential-diagram Y =
+    is-equiv-is-invertible
+      ( map-inv-cocone-map-constant-sequential-diagram Y)
+      ( is-section-map-inv-cocone-map-constant-sequential-diagram Y)
+      ( is-retraction-map-inv-cocone-map-constant-sequential-diagram Y)
 ```

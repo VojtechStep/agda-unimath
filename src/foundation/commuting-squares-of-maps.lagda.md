@@ -11,8 +11,10 @@ open import foundation-core.commuting-squares-of-maps public
 ```agda
 open import foundation.action-on-identifications-binary-functions
 open import foundation.action-on-identifications-functions
+open import foundation.commuting-triangles-of-homotopies
 open import foundation.commuting-triangles-of-maps
 open import foundation.function-extensionality
+open import foundation.homotopy-algebra
 open import foundation.postcomposition-functions
 open import foundation.precomposition-functions
 open import foundation.transposition-identifications-along-equivalences
@@ -593,6 +595,109 @@ module _
             ( right-bottom)
             ( mid-right ·l sq-left-top)
             ( sq-right-top ·r top-left))))
+```
+
+### Stupid fucking shit
+
+```text
+  A -----------> C
+  |             ^|
+  |           /  |
+  |         /    |
+  |       /      |
+  |     /        |
+  |   /          |
+  V /            V
+  B -----------> Y
+  |             ^|
+  |           /  |
+  |         /    |
+  |       /      |
+  |     /        |
+  |   /          |
+  V /            V
+  C -----------> Z
+```
+
+```agda
+module _
+  { l1 l2 l3 l4 l5 : Level}
+  { A : UU l1} {B : UU l2} {C : UU l3}
+  { Y : UU l4} {Z : UU l5}
+  ( top : A → C) (top-left : A → B) (top-right : C → Y)
+  ( mid : B → Y)
+  ( bottom-left : B → C) (bottom-right : Y → Z) (bottom : C → Z)
+  ( top-left-triangle : coherence-triangle-maps' top bottom-left top-left)
+  ( top-right-triangle : coherence-triangle-maps mid top-right bottom-left)
+  ( bottom-left-triangle : coherence-triangle-maps' mid top-right bottom-left)
+  ( bottom-right-triangle : coherence-triangle-maps bottom bottom-right top-right)
+  where
+
+  pasting-coherence-squares-collapse-triangles' :
+    bottom-left-triangle ∙h top-right-triangle ~ refl-htpy →
+    pasting-vertical-coherence-square-maps
+      ( top)
+      ( top-left)
+      ( top-right)
+      ( mid)
+      ( bottom-left)
+      ( bottom-right)
+      ( bottom)
+      ( (top-right-triangle ·r top-left) ∙h (top-right ·l top-left-triangle))
+      ( (bottom-right-triangle ·r bottom-left) ∙h (bottom-right ·l bottom-left-triangle)) ~
+    horizontal-concat-htpy'
+      ( bottom-right-triangle)
+      ( top-left-triangle)
+  pasting-coherence-squares-collapse-triangles' H =
+    left-whisker-concat-coherence-square-homotopies
+      ( bottom-right-triangle ·r bottom-left ·r top-left)
+      ( refl-htpy)
+      ( _)
+      ( _)
+      ( _)
+      ( ( inv-htpy
+          ( distributive-left-whisker-comp-concat
+            ( bottom-right)
+            ( bottom-left-triangle ·r top-left)
+            ( ( top-right-triangle ·r top-left) ∙h
+              ( top-right ·l top-left-triangle)))) ∙h
+        ( left-whisker-comp²
+          ( bottom-right)
+          ( inv-htpy
+            ( right-whisker-concat-coherence-triangle-homotopies
+              ( refl-htpy)
+              ( top-right-triangle ·r top-left)
+              ( bottom-left-triangle ·r top-left)
+              ( inv-htpy H ·r top-left)
+              ( top-right ·l top-left-triangle)))) ∙h
+        ( preserves-comp-left-whisker-comp
+          ( bottom-right)
+          ( top-right)
+          ( top-left-triangle))) ∙h
+    ( ap-concat-htpy'
+      ( (bottom-right ∘ top-right) ·l top-left-triangle)
+      ( right-unit-htpy))
+
+  pasting-coherence-squares-collapse-triangles :
+    bottom-left-triangle ∙h top-right-triangle ~ refl-htpy →
+    pasting-vertical-coherence-square-maps
+      ( top)
+      ( top-left)
+      ( top-right)
+      ( mid)
+      ( bottom-left)
+      ( bottom-right)
+      ( bottom)
+      ( (top-right-triangle ·r top-left) ∙h (top-right ·l top-left-triangle))
+      ( (bottom-right-triangle ·r bottom-left) ∙h (bottom-right ·l bottom-left-triangle)) ~
+    horizontal-concat-htpy
+      ( bottom-right-triangle)
+      ( top-left-triangle)
+  pasting-coherence-squares-collapse-triangles H =
+    ( pasting-coherence-squares-collapse-triangles' H) ∙h
+    ( coh-horizontal-concat-htpy
+      ( bottom-right-triangle)
+      ( top-left-triangle))
 ```
 
 ### Distributivity of pasting squares and transposing by precomposition

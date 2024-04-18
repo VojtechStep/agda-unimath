@@ -1,6 +1,7 @@
 # Functoriality of sequential colimits
 
 ```agda
+{-# OPTIONS --lossy-unification #-}
 module synthetic-homotopy-theory.functoriality-sequential-colimits where
 ```
 
@@ -81,6 +82,29 @@ induces an [equivalence](foundation.equivalences.md) of their colimits.
 
 ## Properties
 
+### A homotopy between cocones induces a homotopy between their corresponding induced maps
+
+```agda
+module _
+  { l1 l2 l3 : Level} {A : sequential-diagram l1}
+  { X : UU l2} {c : cocone-sequential-diagram A X}
+  ( up-c : universal-property-sequential-colimit c)
+  { Y : UU l3}
+  { c' : cocone-sequential-diagram A Y}
+  { c'' : cocone-sequential-diagram A Y}
+  ( H : htpy-cocone-sequential-diagram c' c'')
+  where
+
+  htpy-map-htpy-cocone-sequential-diagram :
+    ( map-universal-property-sequential-colimit up-c c') ~
+    ( map-universal-property-sequential-colimit up-c c'')
+  htpy-map-htpy-cocone-sequential-diagram =
+    htpy-eq
+      ( ap
+        ( map-universal-property-sequential-colimit up-c)
+        ( eq-htpy-cocone-sequential-diagram A c' c'' H))
+```
+
 ### A morphism of sequential diagrams induces a map of cocones
 
 ```agda
@@ -93,6 +117,59 @@ module _
     cocone-sequential-diagram B X → cocone-sequential-diagram A X
   map-cocone-hom-sequential-diagram c =
     comp-hom-sequential-diagram A B (constant-sequential-diagram X) c f
+```
+
+### A homotopy of morphisms of sequential diagrams induces a homotopy of cocones
+
+```agda
+module _
+  { l1 l2 l3 : Level} {A : sequential-diagram l1} {B : sequential-diagram l2}
+  { f g : hom-sequential-diagram A B} (H : htpy-hom-sequential-diagram B f g)
+  { X : UU l3} (c : cocone-sequential-diagram B X)
+  where
+
+  htpy-cocone-htpy-hom-sequential-diagram :
+    htpy-cocone-sequential-diagram
+      ( map-cocone-hom-sequential-diagram f c)
+      ( map-cocone-hom-sequential-diagram g c)
+  pr1 htpy-cocone-htpy-hom-sequential-diagram n =
+    ( map-cocone-sequential-diagram c n) ·l
+    ( htpy-htpy-hom-sequential-diagram B H n)
+  pr2 htpy-cocone-htpy-hom-sequential-diagram n =
+    left-whisker-concat-coherence-square-homotopies
+      ( ( coherence-cocone-sequential-diagram c n) ·r
+        ( map-hom-sequential-diagram B f n))
+      ( _)
+      ( _)
+      ( _)
+      ( _)
+      ( map-coherence-square-homotopies
+        ( map-cocone-sequential-diagram c (succ-ℕ n))
+        ( map-sequential-diagram B n ·l htpy-htpy-hom-sequential-diagram B H n)
+        ( naturality-map-hom-sequential-diagram B f n)
+        ( _)
+        ( _)
+        ( coherence-htpy-htpy-hom-sequential-diagram B H n)) ∙h
+    ( ap-concat-htpy'
+      ( ( map-cocone-sequential-diagram c (succ-ℕ n)) ·l
+        ( naturality-map-hom-sequential-diagram B g n))
+      ( ( ap-concat-htpy
+          ( ( coherence-cocone-sequential-diagram c n) ·r
+            ( map-hom-sequential-diagram B f n))
+          ( preserves-comp-left-whisker-comp
+            ( map-cocone-sequential-diagram c (succ-ℕ n))
+            ( map-sequential-diagram B n)
+            ( htpy-htpy-hom-sequential-diagram B H n))) ∙h
+        ( htpy-swap-nat-right-htpy
+          ( coherence-cocone-sequential-diagram c n)
+          ( htpy-htpy-hom-sequential-diagram B H n)))) ∙h
+    ( assoc-htpy
+      ( ( map-cocone-sequential-diagram c n) ·l
+        ( htpy-htpy-hom-sequential-diagram B H n))
+      ( ( coherence-cocone-sequential-diagram c n) ·r
+        ( map-hom-sequential-diagram B g n))
+      ( ( map-cocone-sequential-diagram c (succ-ℕ n)) ·l
+        ( naturality-map-hom-sequential-diagram B g n)))
 ```
 
 ### A morphism of sequential diagrams induces a map of sequential colimits
@@ -244,10 +321,8 @@ module _
     map-sequential-colimit-hom-sequential-diagram up-c c' f ~
     map-sequential-colimit-hom-sequential-diagram up-c c' g
   htpy-map-sequential-colimit-htpy-hom-sequential-diagram =
-    htpy-eq
-      ( ap
-        ( map-sequential-colimit-hom-sequential-diagram up-c c')
-        ( eq-htpy-sequential-diagram _ _ f g H))
+    htpy-map-htpy-cocone-sequential-diagram up-c
+      ( htpy-cocone-htpy-hom-sequential-diagram H c')
 ```
 
 ### The identity morphism induces the identity map
