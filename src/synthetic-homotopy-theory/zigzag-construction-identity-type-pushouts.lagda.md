@@ -18,6 +18,7 @@ open import foundation.cartesian-product-types
 open import foundation.commuting-squares-of-homotopies
 open import foundation.dependent-identifications
 open import foundation.dependent-pair-types
+open import foundation.embeddings
 open import foundation.empty-types
 open import foundation.equivalences
 open import foundation.function-types
@@ -402,6 +403,12 @@ nat-lemma :
     ( h y)
     ( tr Q q)
 nat-lemma f h {p = p} refl x = substitution-law-tr _ f p ∙ inv (preserves-tr h p x)
+
+apd-lemma :
+  {l1 l2 l3 : Level} {A : UU l1} {B : A → UU l2} {C : A → UU l3}
+  (f : (a : A) → B a) (g : (a : A) → B a → C a) {x y : A} (p : x ＝ y) →
+  apd (λ a → g a (f a)) p ＝ inv (preserves-tr g p (f x)) ∙ ap (g y) (apd f p)
+apd-lemma f g refl = refl
 
 module _
   {l1 l2 l3 l4 : Level} {𝒮 : span-diagram l1 l2 l3}
@@ -792,425 +799,33 @@ module _
                 ( dependent-cogap _ _
                   (pr1 (pr2 (stages-cocones' n)) (left-map-span-diagram 𝒮 s)) p))))
 
---     interleaved mutual
---       -- left section part tⁿ_A a
---       tA :
---         (a : domain-span-diagram 𝒮) →
---         (n : ℕ) →
---         (p : Path-to-a 𝒮 a₀ a n) →
---         left-family-descent-data-pushout R
---           ( a , map-cocone-standard-sequential-colimit n p)
---       -- definition of tⁿ⁺¹_A a (pattern matching on Pⁿ⁺¹_A a)
---       cocone-tA :
---         (a : domain-span-diagram 𝒮) →
---         (n : ℕ) →
---         dependent-cocone-span-diagram
---           ( cocone-pushout _ _)
---           ( λ p →
---             left-family-descent-data-pushout R
---               ( a , map-cocone-standard-sequential-colimit (succ-ℕ n) p))
---       -- right section part tⁿ_B b
---       tB :
---         (b : codomain-span-diagram 𝒮) →
---         (n : ℕ) →
---         (p : Path-to-b 𝒮 a₀ b n) →
---         right-family-descent-data-pushout R
---           ( b , map-cocone-standard-sequential-colimit n p)
---       -- definition of tⁿ⁺¹_B b (pattern matching on Pⁿ⁺¹_B b)
---       cocone-tB :
---         (b : codomain-span-diagram 𝒮) →
---         (n : ℕ) →
---         dependent-cocone-span-diagram
---           ( cocone-pushout _ _)
---           ( λ p →
---             right-family-descent-data-pushout R
---               ( b , map-cocone-standard-sequential-colimit (succ-ℕ n) p))
---       -- section coherence part tⁿ_S
---       tS :
---         (s : spanning-type-span-diagram 𝒮) →
---         (n : ℕ) →
---         (p : Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n) →
---         tr
---           ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---           ( CB s n p)
---           ( map-family-descent-data-pushout R
---             ( s , map-cocone-standard-sequential-colimit n p)
---             ( tA (left-map-span-diagram 𝒮 s) n p)) ＝
---         tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) (concat-s 𝒮 a₀ s n p)
---       -- left section t_A a
---       tAA :
---         (a : domain-span-diagram 𝒮) →
---         (p : left-id-pushout 𝒮 a₀ a) →
---         left-family-descent-data-pushout R (a , p)
---       -- definition of t_A a (pattern matching on Pᵒᵒ_A a)
---       cocone-tAA :
---         (a : domain-span-diagram 𝒮) →
---         dependent-cocone-sequential-diagram
---           ( cocone-standard-sequential-colimit
---             ( left-sequential-diagram-zigzag-id-pushout 𝒮 a₀ a))
---           ( λ p → left-family-descent-data-pushout R (a , p))
---       -- right section t_B b
---       tBB :
---         (b : codomain-span-diagram 𝒮) →
---         (p : right-id-pushout 𝒮 a₀ b) →
---         right-family-descent-data-pushout R (b , p)
---       -- definition of t_B b (pattern matching on Pᵒᵒ_B b)
---       cocone-tBB :
---         (b : codomain-span-diagram 𝒮) →
---         dependent-cocone-sequential-diagram
---           ( cocone-standard-sequential-colimit
---             ( right-sequential-diagram-zigzag-id-pushout 𝒮 a₀ b))
---           ( λ p → right-family-descent-data-pushout R (b , p))
---       -- section coherence t_S s
---       tSS :
---         (s : spanning-type-span-diagram 𝒮) →
---         (p : left-id-pushout 𝒮 a₀ (left-map-span-diagram 𝒮 s)) →
---         map-family-descent-data-pushout R
---           ( s , p)
---           ( tAA (left-map-span-diagram 𝒮 s) p) ＝
---         tBB
---           ( right-map-span-diagram 𝒮 s)
---           ( concat-s-inf 𝒮 a₀ s p)
---       -- definition of t_S s (pattern matching on Pᵒᵒ_A a)
---       cocone-tSS :
---         (s : spanning-type-span-diagram 𝒮) →
---         dependent-cocone-sequential-diagram
---           ( cocone-standard-sequential-colimit
---             ( left-sequential-diagram-zigzag-id-pushout 𝒮 a₀
---               ( left-map-span-diagram 𝒮 s)))
---           ( λ p →
---             map-family-descent-data-pushout R
---               ( s , p)
---               ( tAA (left-map-span-diagram 𝒮 s) p) ＝
---             tBB (right-map-span-diagram 𝒮 s) (concat-s-inf 𝒮 a₀ s p))
+    tA :
+      (a : domain-span-diagram 𝒮) (n : ℕ) (p : Path-to-a 𝒮 a₀ a n) →
+      left-family-descent-data-pushout R
+        ( a , map-cocone-standard-sequential-colimit n p)
+    tA .a₀ zero-ℕ (map-raise refl) = r₀
+    tA a (succ-ℕ n) = dependent-cogap _ _ (pr1 (pr2 (stages-cocones' n)) a)
 
---       tA a zero-ℕ (map-raise refl) = r₀
---       -- tA (n+1) needs coconeA n, which needs tA n and tB (n+1),
---       -- which needs coconeB n, which only needs tB n and tA n,
---       -- so it terminates
---       tA a (succ-ℕ n) = dependent-cogap _ _ (cocone-tA a n)
---       tB b zero-ℕ (map-raise ())
---       tB b (succ-ℕ n) = dependent-cogap _ _ (cocone-tB b n)
---       tAA a = dependent-cogap-standard-sequential-colimit (cocone-tAA a)
---       tBB b = dependent-cogap-standard-sequential-colimit (cocone-tBB b)
-
---       pr1 (cocone-tB b n) p =
---         tr
---           ( ev-pair (right-family-descent-data-pushout R) b)
---           ( coherence-cocone-standard-sequential-colimit n p)
---           ( tB b n p)
---       pr1 (pr2 (cocone-tB b n)) (s , refl , p) =
---         tr
---           ( ev-pair (right-family-descent-data-pushout R) b)
---           ( CB s n p)
---           ( map-family-descent-data-pushout R
---             ( s , map-cocone-standard-sequential-colimit n p)
---             ( tA (left-map-span-diagram 𝒮 s) n p))
---       pr2 (pr2 (cocone-tB ._ zero-ℕ)) (s , refl , map-raise ())
---       pr2 (pr2 (cocone-tB ._ (succ-ℕ n))) (s , refl , p) =
---         inv
---           ( ( ap
---               ( λ q →
---                 tr
---                   ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---                   ( CB s (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p))
---                   ( map-family-descent-data-pushout R
---                     ( s , map-cocone-standard-sequential-colimit (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p))
---                     ( q)))
---               ( compute-inr-dependent-cogap _ _
---                 ( cocone-tA (left-map-span-diagram 𝒮 s) n)
---                 ( s , refl , p))) ∙
---             ( ap
---               ( tr
---                 ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---                 ( CB s (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p)))
---               -- Would typecheck if Agda were to expand vertical-map-dependent-cocone (cocone-tA)
---               ( {![i]!})) ∙
---             ( is-section-map-inv-equiv
---               ( equiv-tr
---                 ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---                 ( CB s (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p)))
---               ( _)))
---         where
---           [i] :
---             map-family-descent-data-pushout R
---               ( s , map-cocone-standard-sequential-colimit (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p))
---               ( inv-map-family-descent-data-pushout R
---                 ( s , map-cocone-standard-sequential-colimit (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p))
---                 ( foo s n p (tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) p))) ＝
---             foo s n p (tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) p)
---           [i] =
---             is-section-map-inv-equiv
---               ( equiv-family-descent-data-pushout R
---                 ( s , map-cocone-standard-sequential-colimit (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p)))
---               ( foo s n p (tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) p))
-
---       pr1 (cocone-tA a n) p =
---         tr
---           ( ev-pair (left-family-descent-data-pushout R) a)
---           ( coherence-cocone-standard-sequential-colimit n p)
---           ( tA a n p)
---       pr1 (pr2 (cocone-tA a n)) (s , refl , p) =
---         inv-map-family-descent-data-pushout R
---           ( s , map-cocone-standard-sequential-colimit (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) p))
---           ( foo s n p (tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) p))
---       pr2 (pr2 (cocone-tA a n)) (s , refl , p) =
---         [key]
---         where
---         [i] :
---           ( ( concat-s-inf 𝒮 a₀ s) ·l
---             ( coherence-cocone-standard-sequential-colimit n ∙h
---               map-cocone-standard-sequential-colimit (succ-ℕ n) ·l (λ p → glue-pushout _ _ (s , refl , p)))) ~
---           ( ( CB s n) ∙h
---             ( ( coherence-cocone-standard-sequential-colimit (succ-ℕ n) ·r
---               ( concat-s 𝒮 a₀ s n))) ∙h
---             ( ( map-cocone-standard-sequential-colimit (succ-ℕ (succ-ℕ n))) ·l
---               (λ p → glue-pushout _ _ (s , refl , concat-s 𝒮 a₀ s n p))) ∙h
---             ( inv-htpy (CB s (succ-ℕ n)) ·r (concat-inv-s 𝒮 a₀ s (succ-ℕ n) ∘ concat-s 𝒮 a₀ s n)))
---         [i] =
---           {!coherence-htpy-cocone-map-sequential-colimit-hom-sequential-diagram
---             ( up-standard-sequential-colimit)
---             ( shift-once-cocone-sequential-diagram
---               ( cocone-standard-sequential-colimit
---                 ( right-sequential-diagram-zigzag-id-pushout 𝒮 a₀ (right-map-span-diagram 𝒮 s))))
---             ( hom-diagram-zigzag-sequential-diagram
---               ( zigzag-sequential-diagram-zigzag-id-pushout 𝒮 a₀ s))
---             ( n)!}
---         [ii] :
---           coherence-square-maps
---             ( tr
---               ( ev-pair
---                 ( left-family-descent-data-pushout R)
---                 ( left-map-span-diagram 𝒮 s))
---               ( ( coherence-cocone-standard-sequential-colimit n p) ∙
---                 ( ap
---                   ( map-cocone-standard-sequential-colimit (succ-ℕ n))
---                   ( glue-pushout _ _ (s , refl , p)))))
---             ( map-family-descent-data-pushout R
---               ( s , map-cocone-standard-sequential-colimit n p))
---             ( map-family-descent-data-pushout R
---               ( s ,
---                 map-cocone-standard-sequential-colimit
---                   ( succ-ℕ n)
---                   ( concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p))))
---             ( tr
---               ( ev-pair
---                 ( right-family-descent-data-pushout R)
---                 ( right-map-span-diagram 𝒮 s))
---               ( ( CB s n p) ∙
---                 ( coherence-cocone-standard-sequential-colimit (succ-ℕ n) (concat-s 𝒮 a₀ s n p)) ∙
---                 ( ap
---                   ( map-cocone-standard-sequential-colimit (succ-ℕ (succ-ℕ n)))
---                   ( glue-pushout _ _ (s , refl , concat-s 𝒮 a₀ s n p))) ∙
---                 ( inv (CB s (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p))))))
---         [ii] =
---           nat-lemma
---             ( concat-s-inf 𝒮 a₀ s)
---             ( ev-pair (map-family-descent-data-pushout R) s)
---             ( [i] p)
---         [iii] :
---           coherence-square-maps
---             ( ( tr
---                 ( λ p →
---                   left-family-descent-data-pushout R
---                     ( left-map-span-diagram 𝒮 s ,
---                       map-cocone-standard-sequential-colimit (succ-ℕ n) p))
---                 ( glue-pushout _ _ (s , refl , p))) ∘
---               ( tr
---                 ( ev-pair
---                   ( left-family-descent-data-pushout R)
---                   ( left-map-span-diagram 𝒮 s))
---                 ( coherence-cocone-standard-sequential-colimit n p)))
---             ( map-family-descent-data-pushout R
---               ( s , map-cocone-standard-sequential-colimit n p))
---             ( map-family-descent-data-pushout R
---               ( s ,
---                 map-cocone-standard-sequential-colimit
---                   ( succ-ℕ n)
---                   ( concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p))))
---             ( ( tr
---                 ( ev-pair
---                   ( right-family-descent-data-pushout R)
---                   ( right-map-span-diagram 𝒮 s))
---                 ( inv (CB s (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p))))) ∘
---               ( tr
---                 ( λ p →
---                   right-family-descent-data-pushout R
---                     ( right-map-span-diagram 𝒮 s ,
---                       map-cocone-standard-sequential-colimit (succ-ℕ (succ-ℕ n)) p))
---                 ( glue-pushout _ _ (s , refl , concat-s 𝒮 a₀ s n p))) ∘
---               ( tr
---                 ( ev-pair
---                   ( right-family-descent-data-pushout R)
---                   ( right-map-span-diagram 𝒮 s))
---                 ( coherence-cocone-standard-sequential-colimit
---                   ( succ-ℕ n)
---                   ( concat-s 𝒮 a₀ s n p))) ∘
---               ( tr
---                 ( ev-pair
---                   ( right-family-descent-data-pushout R)
---                   ( right-map-span-diagram 𝒮 s))
---                 ( CB s n p)))
---         [iii] = {! annoying straightforward path algebra from [ii] !}
---         [key]'' :
---           tr
---             ( λ p →
---               left-family-descent-data-pushout R
---                 ( left-map-span-diagram 𝒮 s , map-cocone-standard-sequential-colimit (succ-ℕ n) p))
---             ( glue-pushout _ _ (s , refl , p))
---             ( tr
---               ( ev-pair (left-family-descent-data-pushout R) (left-map-span-diagram 𝒮 s))
---               ( coherence-cocone-standard-sequential-colimit n p)
---               ( tA (left-map-span-diagram 𝒮 s) n p)) ＝
---           inv-map-family-descent-data-pushout R
---             ( s ,
---               map-cocone-standard-sequential-colimit
---                 ( succ-ℕ n)
---                 ( concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p)))
---             ( ( ( tr
---                   ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---                   ( inv (CB s (succ-ℕ n) (concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p))))) ∘
---                 ( tr
---                   ( λ p →
---                     right-family-descent-data-pushout R
---                       ( right-map-span-diagram 𝒮 s , map-cocone-standard-sequential-colimit (succ-ℕ (succ-ℕ n)) p))
---                   ( glue-pushout _ _ (s , refl , (concat-s 𝒮 a₀ s n p)))) ∘
---                 ( tr
---                   ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---                   ( coherence-cocone-standard-sequential-colimit (succ-ℕ n) (concat-s 𝒮 a₀ s n p))))
---               ( tr
---                 ( ev-pair (right-family-descent-data-pushout R) (right-map-span-diagram 𝒮 s))
---                 ( CB s n p)
---                 ( map-family-descent-data-pushout R
---                   ( s , map-cocone-standard-sequential-colimit n p)
---                   ( tA (left-map-span-diagram 𝒮 s) n p))))
---         [key]'' =
---           map-eq-transpose-equiv
---             ( equiv-family-descent-data-pushout R
---               ( s ,
---                 map-cocone-standard-sequential-colimit
---                   ( succ-ℕ n)
---                   ( concat-inv-s 𝒮 a₀ s
---                     ( succ-ℕ n)
---                     ( concat-s 𝒮 a₀ s n p))))
---             ( inv
---               ( [iii] (tA (left-map-span-diagram 𝒮 s) n p)))
---         [key]' :
---           tr
---             ( λ p →
---               left-family-descent-data-pushout R
---                 ( left-map-span-diagram 𝒮 s , map-cocone-standard-sequential-colimit (succ-ℕ n) p))
---             ( glue-pushout _ _ (s , refl , p))
---             ( tr
---               ( ev-pair (left-family-descent-data-pushout R) (left-map-span-diagram 𝒮 s))
---               ( coherence-cocone-standard-sequential-colimit n p)
---               ( tA (left-map-span-diagram 𝒮 s) n p)) ＝
---           inv-map-family-descent-data-pushout R
---             ( s ,
---               map-cocone-standard-sequential-colimit
---                 ( succ-ℕ n)
---                 ( concat-inv-s 𝒮 a₀ s (succ-ℕ n) (concat-s 𝒮 a₀ s n p)))
---             ( foo s n (concat-s 𝒮 a₀ s n p) (tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) (concat-s 𝒮 a₀ s n p)))
---         [key]' = {!folded foo and tB from [key]''!}
---         [key] :
---           tr
---             ( λ p →
---               left-family-descent-data-pushout R
---                 ( left-map-span-diagram 𝒮 s , map-cocone-standard-sequential-colimit (succ-ℕ n) p))
---             ( glue-pushout _ _ (s , refl , p))
---             ( pr1 (cocone-tA (left-map-span-diagram 𝒮 s) n) p) ＝
---           (pr1 (pr2 (cocone-tA (left-map-span-diagram 𝒮 s) n)) (s , refl , concat-s 𝒮 a₀ s n p))
---         [key] = {!folded cocone-tA from [key]'!}
-
---       tS s n p =
---         inv
---           ( compute-inr-dependent-cogap _ _
---             ( cocone-tB (right-map-span-diagram 𝒮 s) n)
---             ( s , refl , p))
-
---       alt-tS :
---         (s : spanning-type-span-diagram 𝒮) →
---         (n : ℕ) →
---         (p : Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n) →
---         map-family-descent-data-pushout R
---           ( s , map-cocone-standard-sequential-colimit n p)
---           ( tAA
---             ( left-map-span-diagram 𝒮 s)
---             ( map-cocone-standard-sequential-colimit n p)) ＝
---         tBB
---           ( right-map-span-diagram 𝒮 s)
---           ( concat-s-inf 𝒮 a₀ s (map-cocone-standard-sequential-colimit n p))
---       alt-tS s n p =
---         {!tS s n p!}
---         where
---         [ii] =
---           pr1
---             ( htpy-dependent-cocone-dependent-universal-property-sequential-colimit
---               ( dup-standard-sequential-colimit)
---               ( cocone-tAA (left-map-span-diagram 𝒮 s)))
---             ( n)
---             ( p)
---         [i] =
---           apd
---             ( map-family-descent-data-pushout R (s , map-cocone-standard-sequential-colimit n p))
---             ( [ii])
-
---       tSS s = dependent-cogap-standard-sequential-colimit (cocone-tSS s)
-
---       pr1 (cocone-tAA a) = tA a
---       pr2 (cocone-tAA a) n p = inv (compute-inl-dependent-cogap _ _ (cocone-tA a n) p)
-
---       pr1 (cocone-tBB b) = tB b
---       pr2 (cocone-tBB b) n p = inv (compute-inl-dependent-cogap _ _ (cocone-tB b n) p)
-
---       pr1 (cocone-tSS s) = alt-tS s
---       pr2 (cocone-tSS s) = {!!}
-
---     alt-tS-tS-equiv :
---       (s : spanning-type-span-diagram 𝒮) →
---       {!!}
---       -- (n : ℕ) →
---       -- (p : Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n) →
---       -- {!!} ≃ {!!}
---     alt-tS-tS-equiv s =
---       tS-equiv-tS
---         ( up-standard-sequential-colimit)
---         ( up-shift-cocone-sequential-diagram 1 up-standard-sequential-colimit)
---         ( zigzag-sequential-diagram-zigzag-id-pushout 𝒮 a₀ s)
---         ( λ p → left-family-descent-data-pushout R (left-map-span-diagram 𝒮 s , p))
---         ( λ p → right-family-descent-data-pushout R (right-map-span-diagram 𝒮 s , p))
---         ( λ p → equiv-family-descent-data-pushout R (s , p))
---         ( tA (left-map-span-diagram 𝒮 s))
---         -- ( λ where
---         --   zero-ℕ (map-raise refl) → inv (compute-inl-dependent-cogap _ _ (cocone-tA (left-map-span-diagram 𝒮 s) 0) _ ∙ {!!})
---         --   (succ-ℕ n) a → {!!} )
---         ( λ n p →
---           inv
---             ( ( compute-inl-dependent-cogap _ _ (cocone-tA (left-map-span-diagram 𝒮 s) n) p) ∙
---               {!refl!}))
---         ( λ n → tB (right-map-span-diagram 𝒮 s) (succ-ℕ n))
---         ( {!!})
-
+    tB :
+      (b : codomain-span-diagram 𝒮) (n : ℕ) (p : Path-to-b 𝒮 a₀ b n) →
+      right-family-descent-data-pushout R
+        ( b , map-cocone-standard-sequential-colimit n p)
+    tB b zero-ℕ (map-raise ())
+    tB b (succ-ℕ n) = dependent-cogap _ _ (pr1 (stages-cocones' n) b)
 
     ind-singleton-zigzag-id-pushout' : section-descent-data-pushout R
     pr1 ind-singleton-zigzag-id-pushout' (a , p) =
       dependent-cogap-standard-sequential-colimit
-        ( tA , KA)
+        ( tA a , KA)
         ( p)
       where
-      tA :
-        (n : ℕ) (p : Path-to-a 𝒮 a₀ a n) →
-        left-family-descent-data-pushout R
-          ( a , map-cocone-standard-sequential-colimit n p)
-      tA zero-ℕ (map-raise refl) = r₀
-      tA (succ-ℕ n) = dependent-cogap _ _ (pr1 (pr2 (stages-cocones' n)) a)
       KA :
         (n : ℕ) (p : Path-to-a 𝒮 a₀ a n) →
         dependent-identification
           ( ev-pair (left-family-descent-data-pushout R) a)
           ( coherence-cocone-standard-sequential-colimit n p)
-          ( tA n p)
-          ( tA (succ-ℕ n) (inl-Path-to-a 𝒮 a₀ a n p))
+          ( tA a n p)
+          ( tA a (succ-ℕ n) (inl-Path-to-a 𝒮 a₀ a n p))
       KA zero-ℕ (map-raise refl) =
         inv
           ( compute-inl-dependent-cogap _ _
@@ -1223,22 +838,16 @@ module _
             ( p))
     pr1 (pr2 ind-singleton-zigzag-id-pushout') (b , p) =
       dependent-cogap-standard-sequential-colimit
-        ( tB , KB)
+        ( tB b , KB)
         ( p)
       where
-      tB :
-        (n : ℕ) (p : Path-to-b 𝒮 a₀ b n) →
-        right-family-descent-data-pushout R
-          ( b , map-cocone-standard-sequential-colimit n p)
-      tB zero-ℕ (map-raise ())
-      tB (succ-ℕ n) = dependent-cogap _ _ (pr1 (stages-cocones' n) b)
       KB :
         (n : ℕ) (p : Path-to-b 𝒮 a₀ b n) →
         dependent-identification
           ( ev-pair (right-family-descent-data-pushout R) b)
           ( coherence-cocone-standard-sequential-colimit n p)
-          ( tB n p)
-          ( tB (succ-ℕ n) (inl-Path-to-b 𝒮 a₀ b n p))
+          ( tB b n p)
+          ( tB b (succ-ℕ n) (inl-Path-to-b 𝒮 a₀ b n p))
       KB zero-ℕ (map-raise ())
       KB (succ-ℕ n) p =
         inv
@@ -1246,7 +855,74 @@ module _
             ( pr1 (stages-cocones' (succ-ℕ n)) b)
             ( p))
     pr2 (pr2 ind-singleton-zigzag-id-pushout') (s , p) =
-      {!!}
+      dependent-cogap-standard-sequential-colimit
+        ( tS , {!!})
+        ( p)
+      where
+      [i] :
+        (n : ℕ) (p : Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n) →
+        tr
+          ( ev-pair
+            ( right-family-descent-data-pushout R)
+            ( right-map-span-diagram 𝒮 s))
+          ( CB s n p)
+          ( map-family-descent-data-pushout R
+            ( s , map-cocone-standard-sequential-colimit n p)
+            ( tA (left-map-span-diagram 𝒮 s) n p)) ＝
+        tB (right-map-span-diagram 𝒮 s) (succ-ℕ n) (concat-s 𝒮 a₀ s n p)
+      [i] zero-ℕ (map-raise refl) = inv (compute-inr-dependent-cogap _ _ _ _)
+      [i] (succ-ℕ n) p = inv (compute-inr-dependent-cogap _ _ _ _)
+      tS :
+        (n : ℕ) (p : Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n) →
+        map-family-descent-data-pushout R
+          ( s , map-cocone-standard-sequential-colimit n p)
+          ( pr1
+            ( ind-singleton-zigzag-id-pushout')
+            ( left-map-span-diagram 𝒮 s ,
+              map-cocone-standard-sequential-colimit n p)) ＝
+        pr1
+          ( pr2 ind-singleton-zigzag-id-pushout')
+          ( right-map-span-diagram 𝒮 s ,
+            concat-s-inf 𝒮 a₀ s (map-cocone-standard-sequential-colimit n p))
+      tS n p =
+        ( ap
+          ( map-family-descent-data-pushout R
+            ( s , map-cocone-standard-sequential-colimit n p))
+          ( compute-incl-dependent-cogap-standard-sequential-colimit _ n p)) ∙
+        ( map-equiv
+          ( inv-equiv-ap-emb
+            ( emb-equiv
+              ( equiv-tr
+                ( ev-pair
+                  ( right-family-descent-data-pushout R)
+                  ( right-map-span-diagram 𝒮 s))
+                ( CB s n p))))
+          ( [i] n p ∙
+            inv
+              ( ( apd
+                  ( dependent-cogap-standard-sequential-colimit (tB (right-map-span-diagram 𝒮 s) , _))
+                  ( CB s n p)) ∙
+                ( compute-incl-dependent-cogap-standard-sequential-colimit _ (succ-ℕ n) _))))
+      KS :
+        (n : ℕ) (p : Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n) →
+        tr
+          ( λ p →
+            map-family-descent-data-pushout R
+              ( s , p)
+              ( pr1
+                ( ind-singleton-zigzag-id-pushout')
+                ( left-map-span-diagram 𝒮 s , p)) ＝
+            pr1 (pr2 ind-singleton-zigzag-id-pushout') (right-map-span-diagram 𝒮 s , concat-s-inf 𝒮 a₀ s p))
+          ( coherence-cocone-standard-sequential-colimit n p)
+          ( tS n p) ＝
+        tS (succ-ℕ n) (inl-Path-to-a 𝒮 a₀ (left-map-span-diagram 𝒮 s) n p)
+      KS zero-ℕ (map-raise refl) =
+        map-compute-dependent-identification-eq-value _ _
+          ( coherence-cocone-standard-sequential-colimit 0 (map-raise refl))
+          ( _)
+          ( _)
+          ( {!!})
+      KS (succ-ℕ n) p = {!!}
 
   is-identity-system-zigzag-id-pushout :
     is-identity-system-descent-data-pushout
