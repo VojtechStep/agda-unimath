@@ -1,0 +1,19 @@
+name: 'Setup Agda'
+description: 'Setup a specific version of Agda'
+inputs:
+  agda-version:
+    description: 'Agda version. Must be one with compiled bineries provided by upstream.'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: 'Fetch Agda binary'
+      shell: 'bash'
+      run: |
+        ${GITHUB_ACTION_PATH}/fetch-and-checksum.sh "${{ inputs.agda-version }}"
+
+    - name: 'Setup Agda'
+      shell: 'bash'
+      run: |
+        agda --version
+        agda --setup
